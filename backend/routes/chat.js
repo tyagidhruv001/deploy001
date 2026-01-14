@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebase');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+// const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Initialize Gemini
 // Ensure process.env.GEMINI_API_KEY is set in .env

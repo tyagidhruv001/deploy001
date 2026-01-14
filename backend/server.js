@@ -22,6 +22,10 @@ app.use('/api/workers', require('./routes/worker'));
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/chat', require('./routes/chat'));
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
