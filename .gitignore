@@ -1,9 +1,9 @@
-
-frontend/config.js
-.env
-node_modules/
+# Global/Root specific
+.idea/
+.vscode/
 *.log
 end_of_file_check.txt
-.idea/
 **/.DS_Store
-backend/serviceAccountKey.json
+**/Thumbs.db
+
+# Note: frontend and backend specific ignores are handled in their respective .gitignore files
