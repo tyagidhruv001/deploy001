@@ -1,0 +1,9 @@
+
+frontend/config.js
+.env
+node_modules/
+*.log
+end_of_file_check.txt
+.idea/
+**/.DS_Store
+backend/serviceAccountKey.json

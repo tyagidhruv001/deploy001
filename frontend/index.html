@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="KaryaSetu - Connect with skilled blue-collar workers instantly. Plumbers, Electricians, Carpenters, and more.">
+    <title>KaryaSetu - Your Trusted Blue-Collar Service Platform</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="landing/landing.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="nav-logo">
+                    <span class="logo-icon">🔧</span>
+                    <span class="logo-text">KaryaSetu</span>
+                </div>
+
+                <div class="nav-links">
+                    <a href="#services">Services</a>
+                    <a href="#features">Why Us</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#about">About Us</a>
+                </div>
+
+                <div class="nav-actions">
+                    <a href="auth/role-select.html?mode=login" class="btn btn-ghost">Login</a>
+                    <a href="auth/role-select.html?mode=signup" class="btn btn-primary">Get Started</a>
+                </div>
+
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#services">Services</a>
+        <a href="#features">Why Us</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#about">About Us</a>
+        <a href="auth/role-select.html?mode=login" class="btn btn-ghost">Login</a>
+        <a href="auth/role-select.html?mode=signup" class="btn btn-primary">Get Started</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero gradient-mesh">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">
+                        <span class="badge badge-primary">🚀 Trusted by 10,000+ Users</span>
+                    </div>
+
+                    <h1 class="hero-title">
+                        Find Skilled Workers
+                        <span class="gradient-text">Instantly</span>
+                    </h1>
+
+                    <p class="hero-description">
+                        Connect with verified plumbers, electricians, carpenters, and more.
+                        Get your work done quickly, safely, and affordably.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a href="#contact" class="btn btn-outline btn-lg">
+                            <span>Learn More</span>
+                        </a>
+                    </div>
+
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">10K+</div>
+                            <div class="stat-label">Active Workers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">50K+</div>
+                            <div class="stat-label">Jobs Completed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">4.8★</div>
+                            <div class="stat-label">Average Rating</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-visual">
+                    <div class="hero-image-container">
+                        <img src="assets/images/hero-illustration.svg" alt="KaryaSetu Platform" class="hero-image"
+                            id="heroImage">
+
+                        <!-- Floating Cards -->
+                        <div class="floating-card card-1">
+                            <div class="card-icon">⚡</div>
+                            <div class="card-text">
+                                <div class="card-title">Fast Response</div>
+                                <div class="card-subtitle">Within 5 minutes</div>
+                            </div>
+                        </div>
+
+                        <div class="floating-card card-2">
+                            <div class="card-icon">✓</div>
+                            <div class="card-text">
+                                <div class="card-title">Verified Workers</div>
+                                <div class="card-subtitle">100% Background Check</div>
+                            </div>
+                        </div>
+
+                        <div class="floating-card card-3">
+                            <div class="card-icon">💰</div>
+                            <div class="card-text">
+                                <div class="card-title">Fair Pricing</div>
+                                <div class="card-subtitle">Transparent Costs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animated Background Elements -->
+        <div class="hero-bg-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Services</h2>
+                <p>Find the right professional for any job</p>
+            </div>
+
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">🔧</div>
+                    <h3>Mechanic</h3>
+                    <p>Vehicle repairs and maintenance</p>
+                    <a href="auth/role-select.html?mode=signup" class="service-link">Book Now →</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🚰</div>
+                    <h3>Plumber</h3>
+                    <p>Pipe repairs and installations</p>
+                    <a href="auth/role-select.html?mode=signup" class="service-link">Book Now →</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">⚡</div>
+                    <h3>Electrician</h3>
+                    <p>Electrical work and wiring</p>
+                    <a href="auth/role-select.html?mode=signup" class="service-link">Book Now →</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🪚</div>
+                    <h3>Carpenter</h3>
+                    <p>Furniture and woodwork</p>
+                    <a href="auth/role-select.html?mode=signup" class="service-link">Book Now →</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🎨</div>
+                    <h3>Painter</h3>
+                    <p>Interior and exterior painting</p>
+                    <a href="auth/role-select.html?mode=signup" class="service-link">Book Now →</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🧵</div>
+                    <h3>Tailor</h3>
+                    <p>Clothing alterations and stitching</p>
+                    <a href="auth/role-select.html?mode=signup" class="service-link">Book Now →</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🚗</div>
+                    <h3>Driver</h3>
+                    <p>Personal and commercial driving</p>
+                    <a href="auth/role-select.html?mode=signup" class="service-link">Book Now →</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🧹</div>
+                    <h3>Cleaner</h3>
+                    <p>Home and office cleaning</p>
+                    <a href="auth/role-select.html?mode=signup" class="service-link">Book Now →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Choose KaryaSetu?</h2>
+                <p>We make finding skilled workers simple and safe</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon gradient-primary">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <h3>Verified Professionals</h3>
+                    <p>All workers undergo background checks and skill verification</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-accent">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <h3>Instant Matching</h3>
+                    <p>Get matched with nearby workers in under 5 minutes</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-success">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <h3>Quality Guaranteed</h3>
+                    <p>Rated workers with customer reviews and ratings</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-primary">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V11H13V17ZM13 9H11V7H13V9Z"
+                                fill="white" />
+                        </svg>
+                    </div>
+                    <h3>24/7 Support</h3>
+                    <p>Round-the-clock customer support for any issues</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-accent">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <h3>Transparent Pricing</h3>
+                    <p>Know the cost upfront with no hidden charges</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-success">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M9 11L12 14L22 4M21 12V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16"
+                                stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <h3>Secure Payments</h3>
+                    <p>Safe and encrypted payment processing</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>Get started in three simple steps</p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Post Your Job</h3>
+                        <p>Describe what you need and when you need it</p>
+                    </div>
+                </div>
+
+                <div class="step-connector"></div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Get Matched</h3>
+                        <p>We find the best workers near you instantly</p>
+                    </div>
+                </div>
+
+                <div class="step-connector"></div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Job Done</h3>
+                        <p>Worker completes the job, you pay and rate</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <a href="auth/role-select.html?mode=signup" class="btn btn-primary btn-lg">Start Your First Job</a>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- About Section -->
+    <!-- About Section -->
+    <section class="about-section" id="about"
+        style="padding: 6rem 0; background: var(--bg-secondary); position: relative; overflow: hidden;">
+        <!-- Background Elements -->
+        <div
+            style="position: absolute; top: -100px; left: -100px; width: 400px; height: 400px; background: var(--primary-500); filter: blur(120px); opacity: 0.1; border-radius: 50%;">
+        </div>
+        <div
+            style="position: absolute; bottom: -100px; right: -100px; width: 400px; height: 400px; background: var(--accent-purple); filter: blur(120px); opacity: 0.1; border-radius: 50%;">
+        </div>
+
+        <div class="container" style="position: relative; z-index: 2;">
+            <div class="section-header">
+                <h2 style="font-size: 3rem; margin-bottom: 1rem;">About <span class="gradient-text">Us</span></h2>
+                <p style="font-size: 1.15rem; max-width: 600px; margin: 0 auto; color: var(--text-secondary);">Bridging
+                    the gap between skilled hands and modern homes with trust, safety, and innovation.</p>
+            </div>
+
+            <div class="about-grid"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+
+                <!-- Card 1: Mission -->
+                <div class="about-card mission">
+                    <div class="about-icon">
+                        <span style="font-size: 32px;">🎯</span>
+                    </div>
+                    <h3>Our Mission</h3>
+                    <p>
+                        To organize India's blue-collar workforce by providing them with a dignified digital identity.
+                        We connect workers with consistent opportunities while ensuring customers get safe, reliable,
+                        and high-quality services.
+                    </p>
+                </div>
+
+                <!-- Card 2: Identity -->
+                <div class="about-card identity">
+                    <div class="about-icon">
+                        <span style="font-size: 32px;">🤝</span>
+                    </div>
+                    <h3>Who We Are</h3>
+                    <p>
+                        KaryaSetu is a community-driven platform built on trust. We are a team dedicated to solving the
+                        daily struggle of finding reliable help, advocating for fair wages for workers and transparent
+                        pricing for you.
+                    </p>
+                </div>
+
+                <!-- Card 3: Promise -->
+                <div class="about-card promise">
+                    <div class="about-icon">
+                        <span style="font-size: 32px;">🛡️</span>
+                    </div>
+                    <h3>Our Promise</h3>
+                    <p>
+                        Every worker is background-verified, and every job is insured. We stand behind
+                        every service with our satisfaction guarantee, giving you complete peace of mind.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta gradient-cyan">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Get Started?</h2>
+                <p>Join thousands of satisfied customers and workers</p>
+                <div class="cta-buttons">
+                    <a href="auth/role-select.html?mode=signup" class="btn btn-primary btn-lg">I'm a Customer</a>
+                    <a href="auth/role-select.html?mode=signup" class="btn btn-accent btn-lg">I'm a Worker</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <span class="logo-icon">🔧</span>
+                        <span class="logo-text">KaryaSetu</span>
+                    </div>
+                    <p>Connecting skilled workers with customers across India</p>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="#services">Plumber</a></li>
+                        <li><a href="#services">Electrician</a></li>
+                        <li><a href="#services">Carpenter</a></li>
+                        <li><a href="#services">Painter</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="#careers">Careers</a></li>
+                        <li><a href="#blog">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#privacy">Privacy Policy</a></li>
+                        <li><a href="#terms">Terms of Service</a></li>
+                        <li><a href="#refund">Refund Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 KaryaSetu. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook">📘</a>
+                    <a href="#" aria-label="Twitter">🐦</a>
+                    <a href="#" aria-label="Instagram">📷</a>
+                    <a href="#" aria-label="LinkedIn">💼</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="landing/landing.js"></script>
+</body>
+
+</html>
