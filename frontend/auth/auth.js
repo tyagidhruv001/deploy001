@@ -2,25 +2,25 @@
 
 // Check if user is logged in
 function isLoggedIn() {
-    const userData = JSON.parse(localStorage.getItem('karyasetu_user') || '{}');
+    const userData = JSON.parse(sessionStorage.getItem('karyasetu_user') || '{}');
     return userData.loggedIn === true;
 }
 
 // Get user data
 function getUserData() {
-    return JSON.parse(localStorage.getItem('karyasetu_user') || '{}');
+    return JSON.parse(sessionStorage.getItem('karyasetu_user') || '{}');
 }
 
 // Get user role
 function getUserRole() {
-    return localStorage.getItem('karyasetu_user_role');
+    return sessionStorage.getItem('karyasetu_user_role');
 }
 
 // Logout user
 function logout() {
-    localStorage.removeItem('karyasetu_user');
-    localStorage.removeItem('karyasetu_user_role');
-    localStorage.removeItem('karyasetu_user_profile');
+    sessionStorage.removeItem('karyasetu_user');
+    sessionStorage.removeItem('karyasetu_user_role');
+    sessionStorage.removeItem('karyasetu_user_profile');
     window.location.href = '../index.html';
 }
 

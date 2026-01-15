@@ -1036,42 +1036,118 @@ function updatePerformanceChart(period) {
   const ctx = document.getElementById('performanceChart');
   if (!ctx) return;
 
+  // Clear existing chart instance
   if (window.myPerformanceChart) {
     window.myPerformanceChart.destroy();
   }
 
-  const isWeek = period === 'week';
-  const labels = isWeek ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-  const data = isWeek ? [850, 1200, 600, 950, 400, 200, 0] : [4500, 5200, 4800, 6100];
+  // Get Data from Storage
+  const earningsData = Storage.get('worker_earnings') || {};
+  let labels = [];
+  let data = [];
 
-  // Using Chart.js if available, otherwise fallback or just log
-  if (typeof Chart !== 'undefined') {
-    window.myPerformanceChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Earnings (₹)',
-          data: data,
-          borderColor: '#10B981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          borderWidth: 2,
-          tension: 0.4,
-          fill: true,
-          pointBackgroundColor: '#10B981'
-        }]
+  // Default to zero if no data
+  if (period === 'week') {
+    const weeklyData = earningsData.weeklyBreakdown || [
+      { day: 'Mon', amount: 0 }, { day: 'Tue', amount: 0 }, { day: 'Wed', amount: 0 },
+      { day: 'Thu', amount: 0 }, { day: 'Fri', amount: 0 }, { day: 'Sat', amount: 0 }, { day: 'Sun', amount: 0 }
+    ];
+    labels = weeklyData.map(d => d.day);
+    data = weeklyData.map(d => d.amount);
+  } else {
+    // Fallback for other periods
+    labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    data = [0, 0, 0, 0];
+  }
+
+  // Check if we have any actual data
+  const total = data.reduce((a, b) => a + b, 0);
+
+  // Parent container for empty state handling
+  const container = ctx.parentElement;
+
+  // Remove any existing empty message
+  const existingMsg = container.querySelector('.empty-chart-msg');
+  if (existingMsg) existingMsg.remove();
+
+  // Show Empty State if no data
+  if (total === 0) {
+    ctx.style.display = 'none';
+    const msg = document.createElement('div');
+    msg.className = 'empty-chart-msg';
+    msg.style.position = 'absolute';
+    msg.style.top = '0';
+    msg.style.left = '0';
+    msg.style.width = '100%';
+    msg.style.height = '100%';
+    msg.style.display = 'flex';
+    msg.style.flexDirection = 'column';
+    msg.style.alignItems = 'center';
+    msg.style.justifyContent = 'center';
+    msg.innerHTML = `
+        <div style="text-align: center; color: var(--text-tertiary);">
+            <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p style="margin: 0;">No performance data available yet.</p>
+            <p style="font-size: 0.8rem; margin-top: 5px;">Complete jobs to see your progress!</p>
+        </div>
+      `;
+    container.appendChild(msg);
+    // Don't return if we want to render an empty chart, but here we just show the message
+    return;
+  }
+
+  // Ensure chart is visible
+  ctx.style.display = 'block';
+
+  // Check for library
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js not loaded');
+    return;
+  }
+
+  window.myPerformanceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Earnings',
+        data: data,
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#10B981',
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              return 'Earnings: ₹' + context.parsed.y;
+            }
+          }
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
-          x: { grid: { display: false } }
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: 'rgba(255, 255, 255, 0.5)' }
         }
       }
-    });
-  }
+    }
+  });
 }
 
 // ============================================
@@ -1300,6 +1376,10 @@ function initializePage(pageName, params) {
   const performanceCanvas = document.getElementById('performanceChart');
   if (performanceCanvas) {
     updatePerformanceChart('week');
+
+    // Also fetch jobs for the dashboard
+    if (typeof fetchAndRenderJobRequests === 'function') fetchAndRenderJobRequests();
+    if (typeof fetchAndRenderActiveJobs === 'function') fetchAndRenderActiveJobs();
   }
 
   // Initialize earnings chart if on earnings page

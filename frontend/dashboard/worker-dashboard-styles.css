@@ -59,8 +59,12 @@
 }
 
 .job-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
+    background: rgba(30, 35, 45, 0.6);
+    /* Semi-transparent bg-secondary */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Subtle glass border */
     border-radius: var(--radius-xl);
     padding: var(--spacing-xl);
     transition: all var(--transition-base);
@@ -130,10 +134,13 @@
 .review-item,
 .earnings-item {
     padding: var(--spacing-lg);
-    background: var(--bg-elevated);
+    background: rgba(35, 40, 50, 0.5);
+    /* Semi-transparent bg-elevated */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: var(--radius-lg);
     margin-bottom: var(--spacing-md);
-    border: 1px solid var(--border-primary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
@@ -1453,6 +1460,239 @@ input:checked+.toggle-slider:before {
 }
 
 
+
 .sidebar * {
     max-width: 100%;
+}
+
+/* === GLASSMORPHISM WITH PURPLE TINT === */
+:root {
+    --glass-purple-tint: rgba(45, 27, 78, 0.6);
+    /* Deep Purple from image */
+    --glass-purple-border: rgba(130, 100, 255, 0.15);
+}
+
+.sidebar {
+    background: linear-gradient(180deg, rgba(20, 25, 35, 0.8) 0%, rgba(45, 27, 78, 0.4) 100%) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--glass-purple-border) !important;
+}
+
+.topbar {
+    background: rgba(20, 25, 35, 0.7) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--glass-purple-border) !important;
+}
+
+.job-card,
+.earnings-summary-card,
+.status-card,
+.schedule-day,
+.job-history-item {
+    background: linear-gradient(135deg, rgba(30, 35, 45, 0.6) 0%, rgba(45, 27, 78, 0.25) 100%) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-purple-border) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.job-request-item,
+.active-job-item,
+.review-item,
+.earnings-item {
+    background: rgba(35, 40, 50, 0.4) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-purple-border) !important;
+}
+
+/* Subtle gloss on hover */
+.job-card:hover,
+.earnings-summary-card:hover {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.8) 0%, rgba(30, 30, 30, 0.6) 100%) !important;
+}
+
+/* === SPECIFIC OVERRIDES FOR USER REQUESTED RECTANGLES === */
+.dashboard-overview-section {
+    background: linear-gradient(180deg, rgba(5, 5, 5, 0.8) 0%, rgba(15, 15, 15, 0.6) 100%) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border-dark) !important;
+    /* Colorful Shadow Base */
+    box-shadow: 0 4px 20px rgba(100, 100, 255, 0.15),
+        0 0 0 1px rgba(100, 100, 255, 0.05) !important;
+    color: var(--text-primary);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dashboard-overview-section:hover {
+    transform: translateY(-4px);
+    /* Vibrant Hover Shadow */
+    box-shadow: 0 15px 35px rgba(120, 100, 255, 0.25),
+        0 5px 15px rgba(255, 0, 150, 0.15) !important;
+    border-color: rgba(150, 150, 255, 0.3) !important;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(10, 10, 10, 0.7) 0%, rgba(20, 20, 20, 0.5) 100%) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border-dark) !important;
+    /* Colorful Shadow Base */
+    box-shadow: 0 4px 15px rgba(0, 200, 255, 0.1) !important;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(30, 30, 30, 0.7) 100%) !important;
+    /* Vibrant Hover Shadow matching the type (generic colorful mix here) */
+    box-shadow: 0 12px 30px rgba(50, 150, 255, 0.3),
+        0 4px 10px rgba(200, 50, 255, 0.2) !important;
+    border-color: rgba(100, 200, 255, 0.3) !important;
+}
+
+/* Ensure text legibility on dark glass */
+.stat-label,
+.overview-item span {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.stat-value,
+.overview-item div {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard-card {
+    background: linear-gradient(135deg, rgba(10, 10, 10, 0.7) 0%, rgba(20, 20, 20, 0.5) 100%) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border-dark) !important;
+    color: var(--text-primary);
+    border-radius: var(--radius-xl);
+    /* Colorful Shadow Base */
+    box-shadow: 0 4px 20px rgba(150, 50, 255, 0.1) !important;
+    transition: all 0.4s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    /* Vibrant Hover Shadow */
+    box-shadow: 0 15px 40px rgba(100, 50, 255, 0.25),
+        0 5px 15px rgba(50, 200, 255, 0.15) !important;
+    border-color: rgba(150, 100, 255, 0.3) !important;
+}
+
+.dashboard-card .card-header h2 {
+    color: #ffffff !important;
+    opacity: 0.9;
+}
+
+/* === LOGO REDESIGN === */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+    background: transparent;
+    border: none;
+}
+
+.logo:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    border-radius: 10px;
+    color: white;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
+    transform: rotate(-10deg);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.logo:hover .logo-icon {
+    transform: rotate(0deg) scale(1.1);
+    box-shadow: 0 0 25px rgba(0, 114, 255, 0.6);
+}
+
+.logo-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(to right, #ffffff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* === INNER PAGE THEME OVERRIDES (Deep Purple) === */
+
+.stat-badge {
+    background: var(--glass-purple-gradient) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border-light) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.stat-badge-value {
+    color: #ffffff !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.stat-badge-label {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Ensure Page Headers pop */
+.page-title {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.page-subtitle {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Empty States */
+.empty-state,
+.empty-state-small {
+    background: rgba(40, 20, 70, 0.4) !important;
+    backdrop-filter: blur(10px);
+    border: 1px dashed rgba(255, 255, 255, 0.1) !important;
+    border-radius: var(--radius-lg);
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Inputs and Selects on inner pages */
+.filter-select,
+.period-select,
+.setting-item {
+    background: rgba(30, 15, 60, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    backdrop-filter: blur(8px);
+}
+
+/* Education/Profile cards if not covered */
+.education-entry,
+.profile-section {
+    background: rgba(40, 20, 70, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(12px);
 }

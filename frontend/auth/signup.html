@@ -107,7 +107,7 @@
     <script>
         // Check for role
         const urlParams = new URLSearchParams(window.location.search);
-        let role = urlParams.get('role') || localStorage.getItem('karyasetu_user_role');
+        let role = urlParams.get('role') || Storage.get('karyasetu_user_role');
 
         // Auto-redirect removed to ensure users can reach the signup page even if a session exists
 
@@ -119,7 +119,7 @@
             const roleText = role === 'customer' ? 'Customer' : 'Worker';
             const titleElement = document.querySelector('h1');
             if (titleElement) titleElement.textContent = `Sign Up as ${roleText}`;
-            localStorage.setItem('karyasetu_user_role', role);
+            Storage.set('karyasetu_user_role', role);
         }
 
         // Signup form handler
@@ -157,13 +157,14 @@
                     ...response, // expecting { uid, ... } 
                     name,
                     phone,
-                    role,
+                    phone,
+                    role: role, // FORCE OVERRIDE: Ensure session matches selected role
                     loggedIn: true,
                     signupTime: new Date().toISOString()
                 };
 
-                localStorage.setItem('karyasetu_user', JSON.stringify(userData));
-                localStorage.setItem('karyasetu_user_role', role);
+                Storage.set('karyasetu_user', userData);
+                Storage.set('karyasetu_user_role', role);
 
                 // Redirect based on role
                 if (role === 'customer') {

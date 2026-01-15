@@ -16,7 +16,10 @@ async function listUsers() {
         }
 
         usersSnapshot.forEach(doc => {
-            console.log(doc.id, '=>', doc.data());
+            usersSnapshot.forEach(doc => {
+                const data = doc.data();
+                console.log(`User: ${data.name || 'Unknown'} | Phone: ${data.phone} | Role: ${data.role} | UID: ${doc.id}`);
+            });
         });
 
     } catch (error) {

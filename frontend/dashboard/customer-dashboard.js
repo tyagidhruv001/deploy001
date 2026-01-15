@@ -1170,7 +1170,7 @@ async function handleAIMessage() {
 // --- Multi-step Booking Page ---
 function openBookingPage(serviceType) {
     // Save selection and redirect to dedicated booking page
-    localStorage.setItem('karyasetu_selected_service', serviceType);
+    Storage.set('karyasetu_selected_service', serviceType);
     window.location.href = 'booking.html';
 }
 
