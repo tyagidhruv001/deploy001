@@ -100,7 +100,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Check for role
             const urlParams = new URLSearchParams(window.location.search);
-            let role = urlParams.get('role') || localStorage.getItem('karyasetu_user_role');
+            let role = urlParams.get('role') || Storage.get('karyasetu_user_role');
 
             if (!role) {
                 // If no role found, redirect to selection
@@ -111,7 +111,7 @@
                 const roleText = role === 'customer' ? 'Customer' : 'Worker';
                 const titleElement = document.querySelector('h1');
                 if (titleElement) titleElement.textContent = `${roleText} Login`;
-                localStorage.setItem('karyasetu_user_role', role);
+                Storage.set('karyasetu_user_role', role);
             }
 
             // Login with Password Handler
@@ -197,6 +197,12 @@
                     remember: remember
                 };
 
+                // FORCE OVERRIDE: Trust the selected role (from URL) over the backend role
+                // This creates a "Hybrid" session where the user ACTS as the selected role
+                if (role) {
+                    userData.role = role;
+                }
+
                 // Use the global Storage utility if available, else fallback
                 if (typeof Storage !== 'undefined') {
                     Storage.set('karyasetu_user', userData);
@@ -204,20 +210,26 @@
                         Storage.set('karyasetu_user_profile', userData.profile);
                     }
                 } else {
-                    localStorage.setItem('karyasetu_user', JSON.stringify(userData));
+                    // Fallback should typically not happen if util is loaded, but ensuring session isolation
+                    sessionStorage.setItem('karyasetu_user', JSON.stringify(userData));
                     if (userData.profile) {
-                        localStorage.setItem('karyasetu_user_profile', JSON.stringify(userData.profile));
+                        sessionStorage.setItem('karyasetu_user_profile', JSON.stringify(userData.profile));
                     }
                 }
 
                 showToast('Login Successful!', 'success');
 
                 // Redirect
+                // Redirect
                 setTimeout(() => {
-                    if (userData.role === 'customer') {
-                        window.location.href = '../dashboard/customer-dashboard.html';
-                    } else {
+                    // Prioritize user's selected role (from URL/storage) over backend role
+                    // This creates a smoother experience for testing/hybrid accounts
+                    const targetRole = role || userData.role;
+
+                    if (targetRole === 'worker') {
                         window.location.href = '../dashboard/worker-dashboard.html';
+                    } else {
+                        window.location.href = '../dashboard/customer-dashboard.html';
                     }
                 }, 500);
 

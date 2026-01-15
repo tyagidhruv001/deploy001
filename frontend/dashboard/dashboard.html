@@ -21,7 +21,7 @@
     <script>
         // Dashboard Router - Redirects to appropriate dashboard based on role
         const userData = Storage.get('karyasetu_user');
-        const userRole = localStorage.getItem('karyasetu_user_role');
+        const userRole = Storage.get('karyasetu_user_role');
 
         // Check authentication
         if (!userData || !userData.loggedIn) {

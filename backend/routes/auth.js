@@ -7,8 +7,10 @@ const { auth, db } = require('../config/firebase');
 router.post('/signup', async (req, res) => {
     try {
         const { email, password, role, name, phone } = req.body;
+        console.log(`[DEBUG] Signup Attempt: ${email} (${role})`);
 
-        // Create user in Firebase Auth
+        // Debug: Log Project ID (safe to show)
+        console.log('[DEBUG] Start User Creation');
         const userRecord = await auth.createUser({
             email,
             password,

@@ -95,7 +95,7 @@
                 if (!role) return;
 
                 // Store role
-                localStorage.setItem('karyasetu_user_role', role);
+                Storage.set('karyasetu_user_role', role);
 
                 // Get intended mode
                 const urlParams = new URLSearchParams(window.location.search);

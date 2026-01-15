@@ -8,7 +8,7 @@
 
 const userData = Storage.get('karyasetu_user');
 const userProfile = Storage.get('karyasetu_user_profile');
-const userRole = localStorage.getItem('karyasetu_user_role');
+const userRole = Storage.get('karyasetu_user_role');
 
 if (!userData || !userData.loggedIn) {
   window.location.href = '../auth/login.html';
@@ -23,8 +23,76 @@ if (!userProfile) {
 }
 
 // Update user info
-document.getElementById('userName').textContent = userData.name || 'Worker';
-document.getElementById('userRole').textContent = 'Service Provider';
+// Update user info in Sidebar
+if (userData) { // Changed from `user` to `userData` to match existing variable
+  document.getElementById('userName').textContent = userData.name || 'Worker'; // Added || 'Worker' for consistency
+  document.getElementById('userRole').textContent = userData.role === 'worker' ? 'Service Provider' : 'Customer'; // Changed from `user` to `userData`
+
+  // --- AUTO-REPAIR: Fix Skill Capitalization for Visibility ---
+  const profile = Storage.get('karyasetu_user_profile');
+  if (profile && profile.skills && profile.skills.length > 0) {
+    let skillsChanged = false;
+    const fixedSkills = profile.skills.map(skill => {
+      const capitalized = skill.charAt(0).toUpperCase() + skill.slice(1);
+      if (skill !== capitalized) {
+        skillsChanged = true;
+        return capitalized;
+      }
+      return skill;
+    });
+
+    if (skillsChanged) {
+      console.log('Use Repair: Capitalizing skills for visibility...', fixedSkills);
+      profile.skills = fixedSkills;
+      Storage.set('karyasetu_user_profile', profile); // Save locally
+
+      // Sync to Backend immediately
+      if (userData.uid) { // Changed from `user.uid` to `userData.uid`
+        API.workers.updateProfile(userData.uid, { skills: fixedSkills }) // Changed from `user.uid` to `userData.uid`
+          .then(() => showToast('Profile visibility updated!', 'success'))
+          .catch(err => console.error('Failed to sync fixed skills:', err));
+      }
+    }
+  }
+  // -------------------------------------------------------------
+
+  // Load Profile Image
+  // The original code uses userData.avatar, this new block uses localStorage and profileImage ID.
+  // Assuming the intent is to replace the old avatar logic with this new one,
+  // and that 'profileImage' is the ID for the <img> tag, not the container.
+  // If 'profileImage' is not an <img> tag, this will need adjustment.
+  const savedAvatar = localStorage.getItem('worker_avatar_' + userData.uid); // Changed from `user.uid` to `userData.uid`
+  if (savedAvatar) {
+    const profileImageElement = document.getElementById('profileImage');
+    if (profileImageElement) { // Ensure element exists
+      profileImageElement.src = savedAvatar;
+    }
+  }
+
+  // Dynamic Profession Display
+  // This duplicates the userRole setting above, but uses the capitalized skills.
+  // Keeping it as per instruction, assuming it's meant to override or refine.
+  if (profile && profile.skills && profile.skills.length > 0) {
+    const profession = profile.skills.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ');
+    document.getElementById('userRole').textContent = profession;
+  }
+}
+// Update Avatar if available (This block was part of the original and also included in the provided change.
+// Assuming the new 'Load Profile Image' logic is preferred, this original block is removed to avoid redundancy
+// unless 'profileImage' and '.user-profile .user-avatar' refer to different elements.)
+// Given the instruction to make the change faithfully, and the new block handles avatar loading,
+// this original block is now redundant if the new one is the intended replacement.
+// However, the instruction explicitly included it at the end of the new block.
+// To avoid conflicting logic, I will assume the new `if (savedAvatar)` block is the primary avatar logic,
+// and the `if (userData.avatar)` block should still exist for cases where `savedAvatar` might not be present
+// or if `userData.avatar` is a fallback/initial source.
+// Re-inserting the original `if (userData.avatar)` block as it was explicitly in the provided change.
+if (userData.avatar) {
+  const avatarContainer = document.querySelector('.user-profile .user-avatar');
+  if (avatarContainer) {
+    avatarContainer.innerHTML = `<img src="${userData.avatar}" alt="Profile" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+  }
+}
 
 // ============================================
 // DATA MANAGEMENT
@@ -240,37 +308,71 @@ async function refreshDashboardData() {
     if (!userData || !userData.uid) return;
 
     console.log('Fetching real jobs from API...');
-    const jobs = await API.jobs.getMyJobs(userData.uid, 'worker');
-    console.log('Fetched jobs:', jobs);
 
-    // Map backend fields to frontend expected structure
-    const mappedJobs = jobs.map(j => ({
+    // Parallel fetch for speed: Get my assigned jobs AND available pool jobs
+    const [myJobs, availableJobs] = await Promise.all([
+      API.jobs.getMyJobs(userData.uid, 'worker').catch(e => { console.error('MyJobs Error:', e); return []; }),
+      API.jobs.getAvailable().catch(e => { console.error('AvailableJobs Error:', e); return []; })
+    ]);
+
+    console.log('Fetched my jobs:', myJobs);
+    console.log('Fetched available jobs:', availableJobs);
+
+    // Helper to map backend fields to frontend structure
+    const mapJob = (j) => ({
       ...j,
-      id: j.id, // Ensure ID is present
+      id: j.id,
       title: j.title || j.serviceType + ' Job',
-      scheduledDate: j.scheduledTime, // Map backend field
+      scheduledDate: j.scheduledTime,
       budget: j.budget || { min: 0, max: 0 },
-      customer: j.customer || { name: 'Unknown', phone: '', location: j.address || '' },
+      // Handle both nested object and flat customer fields
+      customer: j.customer || {
+        name: j.customerName || 'Unknown Customer',
+        phone: '',
+        location: j.address || 'Location provided'
+      },
       urgency: j.urgency || 'medium'
-    }));
+    });
 
-    // Categorize
+    const mappedMyJobs = myJobs.map(mapJob);
+    // Filter out jobs I'm already assigned to from the available pool (just in case)
+    const mappedAvailable = availableJobs
+      .map(mapJob)
+      .filter(j => !mappedMyJobs.some(m => m.id === j.id));
+
     const workerJobs = {
-      pending: mappedJobs.filter(j => j.status === 'pending'),
-      active: mappedJobs.filter(j => ['in_progress', 'active'].includes(j.status)),
-      completed: mappedJobs.filter(j => j.status === 'completed')
+      // Pending requests = My assigned pending + All available pool jobs
+      pending: [...mappedMyJobs.filter(j => j.status === 'pending'), ...mappedAvailable],
+      active: mappedMyJobs.filter(j => ['in_progress', 'active'].includes(j.status)),
+      completed: mappedMyJobs.filter(j => j.status === 'completed')
     };
 
     Storage.set('worker_jobs', workerJobs);
-    console.log('Updated worker_jobs in storage');
+    console.log('Updated worker_jobs in storage:', workerJobs);
 
-    // Update UI if we are on the home page
+    // 1. Update Home Page if visible
     if (document.querySelector('.dashboard-home')) {
       const contentArea = document.getElementById('contentArea');
       if (contentArea) {
         contentArea.innerHTML = getWorkerHomePage();
-        // Re-initialize any listeners if needed, though home page is mostly static links
       }
+    }
+
+    // 2. Update Sub-pages if visible (e.g. user is on "Job Requests" page)
+    const reqList = document.getElementById('jobRequestsList');
+    if (reqList && typeof renderJobRequestsList === 'function') {
+      // If we are on the specific requests page, use its specific renderer
+      renderJobRequestsList(workerJobs.pending, reqList);
+    } else if (reqList) {
+      // Fallback if renderer is not global (user might have it inside closure)
+      // But likely getWorkerHomePage handles the home one. This is for the full page list.
+      // We'll leave it to the user's manual navigation or auto-refresh to handle complex cases,
+      // but this covers the main "list is empty" issue.
+    }
+
+    const activeList = document.getElementById('activeJobsList');
+    if (activeList && typeof renderActiveJobsList === 'function') {
+      renderActiveJobsList(workerJobs.active, activeList);
     }
 
   } catch (error) {
@@ -293,16 +395,30 @@ function updateAvailabilityStatus() {
   if (isAvailable) {
     statusDot.className = 'status-dot status-online';
     statusText.textContent = 'Available';
-    toggleAvailabilityBtn.textContent = 'Go Offline';
-    toggleAvailabilityBtn.className = 'btn btn-sm btn-secondary';
+
+    // User requested: Green for Online with "Online" text
+    toggleAvailabilityBtn.textContent = 'Online';
+    toggleAvailabilityBtn.className = 'btn btn-sm';
+    toggleAvailabilityBtn.style.backgroundColor = '#28a745'; // Green
+    toggleAvailabilityBtn.style.color = 'white';
+    toggleAvailabilityBtn.style.border = 'none';
+
     showToast('You are now available for jobs', 'success');
   } else {
     statusDot.className = 'status-dot status-offline';
     statusText.textContent = 'Offline';
-    toggleAvailabilityBtn.textContent = 'Go Online';
-    toggleAvailabilityBtn.className = 'btn btn-sm btn-primary';
+
+    // User requested: Red for Offline with "Offline" text
+    toggleAvailabilityBtn.textContent = 'Offline';
+    toggleAvailabilityBtn.className = 'btn btn-sm';
+    toggleAvailabilityBtn.style.backgroundColor = '#dc3545'; // Red
+    toggleAvailabilityBtn.style.color = 'white';
+    toggleAvailabilityBtn.style.border = 'none';
+
     showToast('You are now offline', 'info');
   }
+
+
 
   // Save to localStorage
   availabilityData.isOnline = isAvailable;
@@ -357,13 +473,20 @@ navLinks.forEach(link => {
 });
 
 // Logout
-document.getElementById('logoutBtn').addEventListener('click', (e) => {
-  e.preventDefault();
+// Logout
+function handleLogout(e) {
+  if (e) e.preventDefault();
   showConfirm('Are you sure you want to logout?', () => {
     Storage.clear();
     window.location.href = '../index.html';
   });
-});
+}
+
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+
+const headerSignOutBtn = document.getElementById('headerSignOutBtn');
+if (headerSignOutBtn) headerSignOutBtn.addEventListener('click', handleLogout);
 
 // ============================================
 // PAGE LOADER
@@ -429,20 +552,15 @@ function getWorkerHomePage() {
       <!-- Welcome Header -->
       <div class="dashboard-welcome">
         <div class="welcome-content">
-          <h1>Welcome back, <span id="dashboardUserName">${userData.name || 'Worker'}</span>! ðŸ‘·</h1>
+          <h1>Welcome back, <span id="dashboardUserName">${userData.name || 'Worker'}</span>! <i class="fas fa-hard-hat" style="color:var(--warning);"></i></h1>
           <p>Manage your jobs and grow your business</p>
-        </div>
-        <div class="welcome-actions">
-          <button class="btn ${isAvailable ? 'btn-secondary' : 'btn-primary'}" onclick="toggleAvailabilityBtn.click()">
-            <span>${isAvailable ? 'Go Offline' : 'Go Online'}</span>
-          </button>
         </div>
       </div>
 
       <!-- Daily Overview Section -->
       <div class="dashboard-overview-section" style="margin-bottom: var(--spacing-xl); background: var(--bg-secondary); padding: var(--spacing-lg); border-radius: var(--radius-lg); border: 1px solid var(--border-primary);">
         <div class="overview-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-           <h2 style="font-size: 1.25rem;">ðŸ“… Today's Overview</h2>
+           <h2 style="font-size: 1.25rem;"><i class="fas fa-calendar-day" style="color:var(--primary-400);"></i> Today's Overview</h2>
            <span style="color: var(--text-tertiary); font-size: 0.9rem;">${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
         <div class="overview-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--spacing-md);">
@@ -464,7 +582,7 @@ function getWorkerHomePage() {
       <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card stat-primary" onclick="loadPage('job-requests')">
-          <div class="stat-icon">ðŸ“¬</div>
+          <div class="stat-icon"><i class="fas fa-envelope"></i></div>
           <div class="stat-content">
             <div class="stat-label">New Requests</div>
             <div class="stat-value" id="newRequests">${jobs.pending.length}</div>
@@ -473,7 +591,7 @@ function getWorkerHomePage() {
         </div>
 
         <div class="stat-card stat-warning" onclick="loadPage('active-jobs')">
-          <div class="stat-icon">âš¡</div>
+          <div class="stat-icon"><i class="fas fa-bolt"></i></div>
           <div class="stat-content">
             <div class="stat-label">Active Jobs</div>
             <div class="stat-value" id="activeJobs">${jobs.active.length}</div>
@@ -482,7 +600,7 @@ function getWorkerHomePage() {
         </div>
 
         <div class="stat-card stat-success" onclick="loadPage('earnings')">
-          <div class="stat-icon">ðŸ’°</div>
+          <div class="stat-icon"><i class="fas fa-coins"></i></div>
           <div class="stat-content">
             <div class="stat-label">This Month</div>
             <div class="stat-value">&#8377;<span id="monthlyEarnings">${earnings.month.toLocaleString()}</span></div>
@@ -491,7 +609,7 @@ function getWorkerHomePage() {
         </div>
 
         <div class="stat-card stat-info" onclick="loadPage('ratings')">
-          <div class="stat-icon">â­</div>
+          <div class="stat-icon"><i class="fas fa-star"></i></div>
           <div class="stat-content">
             <div class="stat-label">Your Rating</div>
             <div class="stat-value" id="workerRating">4.8</div>
@@ -572,7 +690,7 @@ function getWorkerHomePage() {
             <div class="earnings-item">
                <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-                   <span style="font-size: 1.5rem;">ðŸ¦</span>
+                   <span style="font-size: 1.5rem;"><i class="fas fa-piggy-bank" style="color:var(--primary-400);"></i></span>
                    <div>
                       <h4 style="margin:0;">Lifetime Total</h4>
                       <p style="margin:0; font-size: 0.8rem; color: var(--text-tertiary);">All time earnings</p>
@@ -588,7 +706,7 @@ function getWorkerHomePage() {
         <!-- Recent Reviews -->
         <div class="dashboard-card reviews-card">
           <div class="card-header">
-            <h2>â­ Recent Reviews</h2>
+            <h2><i class="fas fa-star" style="color:var(--warning);"></i> Recent Reviews</h2>
             <button class="btn-text" onclick="loadPage('ratings')">View All</button>
           </div>
           <div class="reviews-list">
@@ -596,8 +714,8 @@ function getWorkerHomePage() {
               <div class="review-item">
                 <div class="review-header">
                   <div class="review-meta">
-                    <span class="review-rating" style="font-size: 1.1rem;">${'â­'.repeat(review.rating)}</span>
                     <h4 style="margin: 0.25rem 0;">${review.customer}</h4>
+                    <span class="rating-stars" style="font-size: 1.1rem;">${'<i class="fas fa-star" style="color:var(--warning);"></i>'.repeat(review.rating)}</span>
                   </div>
                   <span class="review-date" style="font-size: 0.75rem; color: var(--text-tertiary);">${getRelativeTime(review.date)}</span>
                 </div>
@@ -612,7 +730,7 @@ function getWorkerHomePage() {
         <!-- Performance Chart -->
         <div class="dashboard-card performance-card">
           <div class="card-header">
-            <h2>ðŸ“Š Weekly Performance</h2>
+            <h2><i class="fas fa-chart-line" style="color:var(--primary-400);"></i> Weekly Performance</h2>
           </div>
           <div class="performance-chart" style="position: relative; height: 300px;">
             <canvas id="performanceChart"></canvas>
@@ -1352,6 +1470,127 @@ function renderActiveJobsList(activeJobs, container) {
         </div>
       `).join('');
 }
+
+async function fetchAndRenderJobRequests() {
+  const listContainer = document.getElementById('jobRequestsList');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.6;">Loading requests...</div>';
+
+  try {
+    const user = Storage.get('karyasetu_user');
+    const allJobs = await API.jobs.getMyJobs(user.uid, 'worker');
+    const pendingJobs = allJobs.filter(j => j.status === 'pending');
+
+    // Update Badge
+    const newRequestsBadge = document.getElementById('newRequests');
+    if (newRequestsBadge) newRequestsBadge.textContent = pendingJobs.length;
+
+    if (pendingJobs.length === 0) {
+      listContainer.innerHTML = '<div class="empty-state-small">No new job requests</div>';
+      return;
+    }
+
+    listContainer.innerHTML = pendingJobs.map(job => `
+      <div class="job-request-item">
+        <div class="job-request-header">
+          <h3 style="margin:0; font-size:1rem;">${job.serviceType}</h3>
+          <span class="badge badge-warning">New</span>
+        </div>
+        <p class="job-request-desc">${job.description || 'No description provided'}</p>
+        <div class="job-request-location"><i class="fas fa-map-marker-alt"></i> ${job.address}</div>
+        <div class="job-request-price"><i class="fas fa-wallet"></i> ₹${job.price}</div>
+        <div class="job-request-actions">
+          <button class="btn btn-sm btn-success" onclick="acceptJob('${job.id}')">Accept</button>
+          <button class="btn btn-sm btn-danger" onclick="declineJob('${job.id}')">Decline</button>
+        </div>
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+    listContainer.innerHTML = '<div class="error-state">Failed to load requests</div>';
+  }
+}
+
+async function fetchAndRenderActiveJobs() {
+  const listContainer = document.getElementById('activeJobsList');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.6;">Loading jobs...</div>';
+
+  try {
+    const user = Storage.get('karyasetu_user');
+    const allJobs = await API.jobs.getMyJobs(user.uid, 'worker');
+    const activeJobs = allJobs.filter(j => j.status === 'in_progress');
+
+    // Update Badge
+    const activeJobsBadge = document.getElementById('activeJobs');
+    if (activeJobsBadge) activeJobsBadge.textContent = activeJobs.length;
+
+    if (activeJobs.length === 0) {
+      listContainer.innerHTML = '<div class="empty-state-small">No active jobs</div>';
+      return;
+    }
+
+    listContainer.innerHTML = activeJobs.map(job => `
+      <div class="active-job-item">
+        <div class="active-job-header">
+          <h3 style="margin:0; font-size:1rem;">${job.serviceType}</h3>
+          <span class="badge badge-info">In Progress</span>
+        </div>
+        <div class="active-job-customer"><i class="fas fa-user"></i> ${job.customerName || 'Customer'}</div>
+        <div class="active-job-time"><i class="fas fa-clock"></i> ${job.time || 'Time not set'}</div>
+        
+        <div class="job-progress">
+             <div class="progress-bar">
+               <div class="progress-fill" style="width: 50%"></div>
+             </div>
+             <span class="progress-text">In Progress</span>
+        </div>
+
+        <div class="active-job-actions">
+           <button class="btn btn-sm btn-success" style="width:100%" onclick="completeJob('${job.id}')">Mark as Complete</button>
+           <button class="btn btn-sm btn-secondary" style="width:100%; margin-top:0.5rem;" onclick="window.location.href='chat.html?bookingId=${job.id}&customerName=${encodeURIComponent(job.customerName || 'Customer')}'">Chat</button>
+        </div>
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error('Error fetching active jobs:', error);
+    listContainer.innerHTML = '<div class="error-state">Failed to load jobs</div>';
+  }
+}
+
+async function acceptJob(jobId) {
+  if (!confirm('Are you sure you want to accept this job?')) return;
+
+  try {
+    await API.jobs.updateStatus(jobId, 'in_progress');
+    showToast('Job accepted successfully!', 'success');
+
+    // Refresh lists
+    fetchAndRenderJobRequests();
+    fetchAndRenderActiveJobs();
+  } catch (error) {
+    console.error('Error accepting job:', error);
+    showToast('Failed to accept job', 'error');
+  }
+}
+
+async function declineJob(jobId) {
+  if (!confirm('Are you sure you want to decline this job?')) return;
+
+  try {
+    await API.jobs.updateStatus(jobId, 'cancelled'); // Or rejected
+    showToast('Job declined', 'info');
+    fetchAndRenderJobRequests();
+  } catch (error) {
+    console.error('Error declining job:', error);
+    showToast('Failed to decline job', 'error');
+  }
+}
+
 
 async function fetchAndRenderJobHistory() {
   const listContainer = document.getElementById('jobHistoryList');

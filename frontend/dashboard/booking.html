@@ -316,6 +316,32 @@
         };
 
         elements.nextBtn.addEventListener('click', () => {
+            // Validation Logic
+            if (currentStep === 1) {
+                const date = document.getElementById('booking-date').value;
+                const time = document.getElementById('booking-time').value;
+                if (!date || !time) {
+                    alert('Please select both date and time.');
+                    return;
+                }
+            }
+
+            if (currentStep === 2) {
+                if (!selectedWorker) {
+                    alert('Please select a worker to proceed.');
+                    return;
+                }
+            }
+
+            if (currentStep === 3) {
+                const address = document.getElementById('booking-address').value;
+                const phone = document.getElementById('booking-phone').value;
+                if (!address || !phone) {
+                    alert('Please provide address and contact details.');
+                    return;
+                }
+            }
+
             if (currentStep < totalSteps) {
                 goToStep(currentStep + 1);
             } else {
@@ -372,11 +398,13 @@
 
             const newBooking = {
                 customerId: user.uid, // From logged in user
+                customerName: user.name, // Send name for display
                 // If worker isn't selected, send 'auto-assign' or handle in backend. 
                 // Using selectedWorker variable which holds name for now, but backend expects workerId if specific.
                 // For this implementation, we'll send a placeholder or handle it if selectedWorker is a name.
                 // In a real app we'd need the worker's UID from the selection card.
                 workerId: 'auto-assign', // Placeholder since we don't have worker UIDs in the mock generator
+                workerName: selectedWorker || 'Any Professional',
                 serviceType: serviceType,
                 date: document.getElementById('booking-date').value,
                 time: document.getElementById('booking-time').value,

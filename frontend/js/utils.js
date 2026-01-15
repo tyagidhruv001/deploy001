@@ -1,33 +1,33 @@
 // Global utility functions for KaryaSetu
 
-// Local Storage helpers
+// Local Storage helpers (Now using sessionStorage for tab isolation)
 const Storage = {
     get(key) {
         try {
-            const item = localStorage.getItem(key);
+            const item = sessionStorage.getItem(key);
             return item ? JSON.parse(item) : null;
         } catch (e) {
-            console.error('Error reading from localStorage:', e);
+            console.error('Error reading from sessionStorage:', e);
             return null;
         }
     },
 
     set(key, value) {
         try {
-            localStorage.setItem(key, JSON.stringify(value));
+            sessionStorage.setItem(key, JSON.stringify(value));
             return true;
         } catch (e) {
-            console.error('Error writing to localStorage:', e);
+            console.error('Error writing to sessionStorage:', e);
             return false;
         }
     },
 
     remove(key) {
-        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
     },
 
     clear() {
-        localStorage.clear();
+        sessionStorage.clear();
     }
 };
 

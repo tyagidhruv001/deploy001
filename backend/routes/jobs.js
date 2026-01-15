@@ -8,7 +8,7 @@ router.post('/', async (req, res) => {
     try {
         console.log('POST /api/jobs called with body:', req.body);
         // Combine date/time if provided separate
-        let { customerId, workerId, serviceType, address, scheduledTime, date, time } = req.body;
+        let { customerId, customerName, workerId, workerName, serviceType, address, scheduledTime, date, time } = req.body;
 
         if (!scheduledTime && date && time) {
             scheduledTime = `${date}T${time}:00.000Z`; // Simple ISO construction
@@ -16,7 +16,9 @@ router.post('/', async (req, res) => {
 
         const jobData = {
             customerId,
+            customerName, // Save the name for display
             workerId,
+            workerName,   // Save worker name for display
             serviceType,
             address,
             scheduledTime,
