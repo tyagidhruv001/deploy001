@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://deploy001-cyan.vercel.app/api';
 
 const API = {
     // Auth endpoints
