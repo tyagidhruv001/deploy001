@@ -241,7 +241,7 @@
     <script type="module">
         import { auth, db } from '../config.js';
 
-        const API_URL = 'http://localhost:5000';
+        const API_URL = window.location.origin + '/api';
         let selectedAmount = 0;
         let currentUser = null;
 

@@ -35,6 +35,10 @@ app.use('/api/verification', require('./routes/verification'));
 app.use('/api/location', require('./routes/location'));
 app.use('/api/payments', require('./routes/payments'));
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;

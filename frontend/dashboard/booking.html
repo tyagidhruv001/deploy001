@@ -571,8 +571,7 @@
             const user = Storage.get('karyasetu_user');
             if (!user) return;
             try {
-                const hostname = window.location.hostname;
-                const response = await fetch(`http://${hostname}:5000/api/payments/balance/${user.uid}`);
+                const response = await fetch(`${window.location.origin}/api/payments/balance/${user.uid}`);
                 const data = await response.json();
                 if (data.success) {
                     userWalletBalance = data.balance;
@@ -653,8 +652,7 @@
 
                 // 2. If paying via wallet, deduct the amount
                 if (paymentMethod === 'wallet') {
-                    const hostname = window.location.hostname;
-                    const deductRes = await fetch(`http://${hostname}:5000/api/payments/deduct`, {
+                    const deductRes = await fetch(`${window.location.origin}/api/payments/deduct`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -719,7 +717,7 @@
                 console.log(`Fetching workers for skill: ${skillQuery}`);
                 // In a real app we might fetch all and filter if backend skill match is strict
                 // But our backend supports array-contains
-                const workers = await API.workers.getAll({ skill: skillQuery });
+                const workers = await API.workers.getAll({ category: skillQuery });
                 console.log('Fetched workers:', workers);
                 return workers;
             } catch (error) {

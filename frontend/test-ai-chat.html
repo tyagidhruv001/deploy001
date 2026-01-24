@@ -221,7 +221,7 @@
         const chatHistory = document.getElementById('chat-history');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
-        const API_URL = 'http://localhost:5000';
+        const API_URL = window.location.origin + '/api';
 
         // Conversation history for context
         let conversationHistory = [
