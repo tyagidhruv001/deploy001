@@ -1,4 +1,5 @@
-const API_BASE_URL = window.location.origin + '/api';
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
 
 const API = {
     // Auth endpoints

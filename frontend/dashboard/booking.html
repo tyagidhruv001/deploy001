@@ -571,7 +571,9 @@
             const user = Storage.get('karyasetu_user');
             if (!user) return;
             try {
-                const response = await fetch(`${window.location.origin}/api/payments/balance/${user.uid}`);
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const baseUrl = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+                const response = await fetch(`${baseUrl}/payments/balance/${user.uid}`);
                 const data = await response.json();
                 if (data.success) {
                     userWalletBalance = data.balance;
@@ -650,9 +652,10 @@
                 // 1. Create the booking
                 const response = await API.jobs.create(newBooking);
 
-                // 2. If paying via wallet, deduct the amount
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const baseUrl = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
                 if (paymentMethod === 'wallet') {
-                    const deductRes = await fetch(`${window.location.origin}/api/payments/deduct`, {
+                    const deductRes = await fetch(`${baseUrl}/payments/deduct`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

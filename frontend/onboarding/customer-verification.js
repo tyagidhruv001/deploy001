@@ -1,7 +1,8 @@
 import { auth, db } from '../config.js';
 import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-const API_BASE_URL = window.location.origin + '/api';
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
 
 class CustomerVerificationFlow {
     constructor() {
