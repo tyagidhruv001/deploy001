@@ -7,7 +7,6 @@ const { db } = require('../config/firebase');
 router.get('/', async (req, res) => {
     try {
         const { skill } = req.query;
-        console.log(`GET /api/workers called with skill: '${skill}'`);
 
         let query = db.collection('users').where('role', '==', 'worker');
 

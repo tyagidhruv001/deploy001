@@ -7,10 +7,7 @@ const { auth, db } = require('../config/firebase');
 router.post('/signup', async (req, res) => {
     try {
         const { email, password, role, name, phone } = req.body;
-        console.log(`[DEBUG] Signup Attempt: ${email} (${role})`);
 
-        // Debug: Log Project ID (safe to show)
-        console.log('[DEBUG] Start User Creation');
         const userRecord = await auth.createUser({
             email,
             password,
@@ -43,7 +40,7 @@ router.post('/login', async (req, res) => {
     try {
         let uid;
         if (idToken && idToken.startsWith('mock-token')) {
-            console.log('Using Mock Token for Login');
+            // Using Mock Token for Login
             // Mock Login: Just find the first user or specific user
             // Ideally we should look up by phone if provided
             if (phone) {
@@ -176,7 +173,7 @@ router.put('/profile/:uid', async (req, res) => {
 
             // Sync to workers collection
             await db.collection('workers').doc(uid).set(workerData, { merge: true });
-            console.log(`Synced worker data to workers collection for uid: ${uid}`);
+            // Synced worker data to workers collection
         }
 
         const updatedDoc = await db.collection('users').doc(uid).get();

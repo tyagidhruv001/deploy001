@@ -6,4 +6,7 @@ end_of_file_check.txt
 **/.DS_Store
 **/Thumbs.db
 
+# Firebase config (contains API keys)
+frontend/config.js
+
 # Note: frontend and backend specific ignores are handled in their respective .gitignore files
