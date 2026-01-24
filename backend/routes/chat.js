@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebase');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+
 
 // Initialize Gemini
 // Ensure process.env.GEMINI_API_KEY is set in .env
@@ -52,7 +52,7 @@ router.post('/', async (req, res) => {
             };
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const history = (previousHistory && previousHistory.length > 0) ? previousHistory : [
             systemInstruction,
@@ -98,12 +98,18 @@ router.post('/p2p', async (req, res) => {
         // Structure: chats/{bookingId}/messages/{messageId}
         await db.collection('chats').doc(bookingId).collection('messages').add(messageData);
 
-        // Update last message in the parent doc for quick preview if needed later
-        await db.collection('chats').doc(bookingId).set({
+        // Update last message and potentially participant details in parent doc
+        const chatUpdate = {
             lastMessage: text,
             lastUpdated: new Date().toISOString(),
             bookingId: bookingId
-        }, { merge: true });
+        };
+
+        // If sender details are provided (optional optimization from frontend)
+        if (req.body.senderName) chatUpdate[`participants.${senderId}.name`] = req.body.senderName;
+        if (req.body.senderPic) chatUpdate[`participants.${senderId}.pic`] = req.body.senderPic;
+
+        await db.collection('chats').doc(bookingId).set(chatUpdate, { merge: true });
 
         res.status(201).json({ success: true, message: 'Message sent' });
     } catch (error) {

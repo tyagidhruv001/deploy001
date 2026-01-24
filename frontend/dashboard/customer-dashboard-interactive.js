@@ -220,26 +220,53 @@ function triggerConfetti() {
     }
 }
 
-// Enhanced Booking with Animation
-function bookWorkerEnhanced(workerId, workerName) {
-    showConfirm(`Book ${workerName}?`, () => {
-        // Show loading animation
-        showLoading('Processing booking...');
+// Enhanced Booking with Real API Integration
+async function bookWorkerEnhanced(workerId, workerName, serviceType = 'General') {
+    const user = Storage.get('karyasetu_user');
+    if (!user || !user.uid) {
+        showInteractiveNotification('Please log in to book a service.', 'error');
+        return;
+    }
 
-        // Simulate API call
-        setTimeout(() => {
-            hideLoading();
+    if (confirm(`Book ${workerName} for ${serviceType}?`)) {
+        // Show loading animation
+        if (typeof showLoading === 'function') showLoading('Processing booking...');
+        else showInteractiveNotification('Processing booking...', 'info');
+
+        try {
+            const jobData = {
+                customerId: user.uid,
+                workerId: workerId || 'auto-assign',
+                serviceType: serviceType,
+                status: 'pending',
+                price: 450, // Default price or fetched from worker profile
+                scheduledTime: new Date().toISOString(),
+                address: user.address || 'User Address'
+            };
+
+            const response = await API.jobs.create(jobData);
+
+            if (typeof hideLoading === 'function') hideLoading();
             triggerConfetti();
             showInteractiveNotification(`Successfully booked ${workerName}!`, 'success');
 
+            // Refresh dashboards
+            if (window.refreshCustomerDashboardData) {
+                window.refreshCustomerDashboardData();
+            }
+
             // Update stats
-            const activeBookings = document.getElementById('activeBookings');
+            const activeBookings = document.getElementById('stat-active-count');
             if (activeBookings) {
-                const current = parseInt(activeBookings.textContent);
+                const current = parseInt(activeBookings.textContent) || 0;
                 animateCounterEnhanced(activeBookings, current, current + 1, 1000);
             }
-        }, 1500);
-    });
+        } catch (error) {
+            if (typeof hideLoading === 'function') hideLoading();
+            console.error('Booking Error:', error);
+            showInteractiveNotification(`Failed to book: ${error.message}`, 'error');
+        }
+    }
 }
 
 // Interactive Service Selection
@@ -427,7 +454,7 @@ function setupVoiceSearch() {
         const transcript = event.results[0][0].transcript;
         document.querySelector('.search-input').value = transcript;
         voiceBtn.classList.remove('listening');
-    });
+    };
 
     recognition.onerror = () => {
         voiceBtn.classList.remove('listening');

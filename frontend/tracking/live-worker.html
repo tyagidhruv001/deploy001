@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Location - Live GPS | KaryaSetu</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(30, 32, 58, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1001;
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            flex: 1;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #00ff88;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        #map {
+            flex: 1;
+            z-index: 1;
+        }
+
+        .info-card {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 32, 58, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-width: 320px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #00d2ff;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .status-msg {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .status-active {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .status-inactive {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .last-update {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>📱 Share Your Location</h1>
+        <div class="toggle-container">
+            <span class="toggle-label" id="toggle-label">Off</span>
+            <div class="toggle-switch" id="location-toggle" onclick="toggleLocationSharing()"></div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="info-card">
+        <div class="stat-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="accuracy">--</div>
+                <div class="stat-label">GPS Accuracy (m)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="update-count">0</div>
+                <div class="stat-label">Updates Sent</div>
+            </div>
+        </div>
+
+        <div class="status-msg status-inactive" id="status-msg">
+            Tap toggle to start sharing your location
+        </div>
+
+        <div class="last-update" id="last-update">
+            Ready to share
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Auto-detect API URL (works on local network)
+        const hostname = window.location.hostname;
+        const API_URL = `http://${hostname}:5000`;
+        console.log('Using API URL:', API_URL);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('bookingId') || 'default-test';
+
+        let map, myMarker;
+        let isSharing = false;
+        let watchId = null;
+        let updateCount = 0;
+
+        function initMap() {
+            map = L.map('map').setView([28.6139, 77.2090], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        function toggleLocationSharing() {
+            isSharing = !isSharing;
+            const toggle = document.getElementById('location-toggle');
+            const label = document.getElementById('toggle-label');
+            const statusMsg = document.getElementById('status-msg');
+
+            toggle.classList.toggle('active');
+            label.textContent = isSharing ? 'On' : 'Off';
+
+            if (isSharing) {
+                statusMsg.className = 'status-msg status-active';
+                statusMsg.textContent = '✓ Sharing your location';
+                startSharing();
+            } else {
+                statusMsg.className = 'status-msg status-inactive';
+                statusMsg.textContent = 'Location sharing stopped';
+                stopSharing();
+            }
+        }
+
+        function startSharing() {
+            if (!navigator.geolocation) {
+                alert('Your browser doesn\'t support GPS');
+                toggleLocationSharing(); // Toggle back off
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            };
+
+            watchId = navigator.geolocation.watchPosition(
+                updatePosition,
+                handleError,
+                options
+            );
+        }
+
+        function stopSharing() {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        }
+
+        async function updatePosition(position) {
+            const { latitude, longitude, accuracy } = position.coords;
+
+            // Update map
+            const myIcon = L.divIcon({
+                html: '<div style="background:#00ff88;width:35px;height:35px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 12px rgba(0,255,136,0.4);">📍</div>',
+                iconSize: [35, 35],
+                className: ''
+            });
+
+            if (!myMarker) {
+                myMarker = L.marker([latitude, longitude], { icon: myIcon })
+                    .addTo(map)
+                    .bindPopup('<b>Your Location</b><br>Sharing with friend');
+                map.setView([latitude, longitude], 14);
+            } else {
+                myMarker.setLatLng([latitude, longitude]);
+            }
+
+            // Update stats
+            document.getElementById('accuracy').textContent = Math.round(accuracy);
+            document.getElementById('last-update').textContent =
+                'Last update: ' + new Date().toLocaleTimeString();
+
+            // Send to backend
+            await sendLocation(latitude, longitude);
+
+            updateCount++;
+            document.getElementById('update-count').textContent = updateCount;
+        }
+
+        async function sendLocation(lat, lng) {
+            try {
+                const response = await fetch(`${API_URL}/api/location/${bookingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: 'worker-' + Date.now(),
+                        userType: 'worker',
+                        latitude: lat,
+                        longitude: lng
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('Location sent successfully');
+                }
+            } catch (error) {
+                console.error('Failed to send location:', error);
+            }
+        }
+
+        function handleError(error) {
+            console.error('GPS error:', error);
+            let message = 'Unable to get location';
+
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    message = '⚠️ Please allow location access';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = '⚠️ Location unavailable';
+                    break;
+                case error.TIMEOUT:
+                    message = '⚠️ Location request timed out';
+                    break;
+            }
+
+            document.getElementById('status-msg').textContent = message;
+            toggleLocationSharing(); // Turn off
+        }
+
+        window.addEventListener('load', initMap);
+    </script>
+</body>
+
+</html>

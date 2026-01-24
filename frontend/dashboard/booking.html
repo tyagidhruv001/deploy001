@@ -183,6 +183,138 @@
             background: rgba(57, 255, 20, 0.1);
             box-shadow: 0 0 20px rgba(57, 255, 20, 0.1);
         }
+
+        /* Profile Modal Styles */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .profile-modal.active {
+            display: flex;
+        }
+
+        .profile-modal-content {
+            background: var(--bg-dark-800);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .profile-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .profile-close:hover {
+            background: rgba(255, 59, 48, 0.5);
+            transform: rotate(90deg);
+        }
+
+        .profile-header-banner {
+            height: 120px;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            position: relative;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--bg-dark-800);
+            position: absolute;
+            bottom: -50px;
+            left: 30px;
+            background: var(--bg-dark-700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .profile-body {
+            padding: 60px 30px 30px;
+        }
+
+        .skill-tag {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .info-cell {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -275,10 +407,15 @@
                 </div>
                 <div>
                     <label class="input-label">Payment Method</label>
-                    <div style="display: flex; gap: 1rem;">
-                        <button class="btn btn-secondary active">Cash after Job</button>
-                        <button class="btn btn-secondary">Wallet (₹1250)</button>
+                    <div style="display: flex; gap: 1rem;" id="payment-methods">
+                        <button class="btn btn-secondary active" onclick="selectPaymentMethod(this, 'cash')">Cash after
+                            Job</button>
+                        <button class="btn btn-secondary" id="wallet-payment-btn"
+                            onclick="selectPaymentMethod(this, 'wallet')">Wallet (Loading...)</button>
                     </div>
+                    <p id="wallet-error"
+                        style="color: var(--neon-pink); font-size: 0.8rem; margin-top: 0.5rem; display: none;">
+                        Insufficient balance. Please top up your wallet.</p>
                 </div>
             </div>
 
@@ -295,7 +432,58 @@
         </div>
     </div>
 
-    <script src="../config.js"></script>
+    <!-- Worker Profile Modal -->
+    <div class="profile-modal" id="worker-profile-modal">
+        <div class="profile-modal-content">
+            <button class="profile-close" onclick="closeWorkerProfile()"><i class="fas fa-times"></i></button>
+            <div class="profile-header-banner">
+                <div class="profile-avatar-large" id="modal-avatar">UP</div>
+            </div>
+            <div class="profile-body">
+                <div style="margin-bottom: 1.5rem;">
+                    <h2 id="modal-name" style="margin: 0; font-size: 1.8rem; color: #fff;">Walter White</h2>
+                    <p id="modal-category" style="margin: 5px 0; color: var(--neon-blue); font-weight: 500;">Plumber • 5
+                        Years Exp</p>
+                    <div id="modal-rating" style="color: var(--neon-orange); margin-top: 5px;">
+                        <i class="fas fa-star"></i> 4.8 (12 Reviews)
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-cell">
+                        <div class="info-label">Hourly Rate</div>
+                        <div class="info-value" id="modal-rate">₹450/hr</div>
+                    </div>
+                    <div class="info-cell">
+                        <div class="info-label">Location</div>
+                        <div class="info-value" id="modal-location">Mumbai, Andheri</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 10px; color: #fff;">About Professional</h4>
+                    <p id="modal-bio"
+                        style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                        Reliable and experienced plumber with expertise in residential plumbing, leaks, and fixture
+                        installations.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 10px; color: #fff;">Skills & Expertise</h4>
+                    <div id="modal-skills">
+                        <span class="skill-tag">Pipe Fitting</span>
+                        <span class="skill-tag">Leak Repair</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-block" id="modal-book-btn" style="margin-top: 1rem;">Book This
+                    Professional</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../config.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/utils.js"></script>
     <script src="customer-dashboard.js"></script>
@@ -303,6 +491,9 @@
         let currentStep = 1;
         const totalSteps = 4;
         let selectedWorker = '';
+        let selectedWorkerPrice = 450;
+        let paymentMethod = 'cash';
+        let userWalletBalance = 0;
         const serviceType = localStorage.getItem('karyasetu_selected_service') || 'General';
 
         document.getElementById('service-title-display').innerHTML = `Book <span class="text-gradient">${serviceType}</span>`;
@@ -376,10 +567,50 @@
             }
         }
 
-        function selectWorker(card, name) {
+        async function fetchWalletBalance() {
+            const user = Storage.get('karyasetu_user');
+            if (!user) return;
+            try {
+                const hostname = window.location.hostname;
+                const response = await fetch(`http://${hostname}:5000/api/payments/balance/${user.uid}`);
+                const data = await response.json();
+                if (data.success) {
+                    userWalletBalance = data.balance;
+                    const walletBtn = document.getElementById('wallet-payment-btn');
+                    if (walletBtn) walletBtn.textContent = `Wallet (₹${userWalletBalance.toFixed(2)})`;
+                }
+            } catch (error) {
+                console.error('Failed to fetch wallet balance:', error);
+                const walletBtn = document.getElementById('wallet-payment-btn');
+                if (walletBtn) walletBtn.textContent = 'Wallet (Unavailable)';
+            }
+        }
+
+        window.selectPaymentMethod = function (btn, method) {
+            document.querySelectorAll('#payment-methods .btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            paymentMethod = method;
+
+            const errorEl = document.getElementById('wallet-error');
+            if (method === 'wallet' && userWalletBalance < selectedWorkerPrice) {
+                if (errorEl) errorEl.style.display = 'block';
+            } else {
+                if (errorEl) errorEl.style.display = 'none';
+            }
+        }
+
+        function selectWorker(card, name, price) {
             document.querySelectorAll('.worker-selection-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedWorker = name;
+            selectedWorkerPrice = price;
+
+            // Check if wallet still has enough balance
+            if (paymentMethod === 'wallet' && userWalletBalance < selectedWorkerPrice) {
+                document.getElementById('wallet-error').style.display = 'block';
+            } else {
+                document.getElementById('wallet-error').style.display = 'none';
+            }
         }
 
         async function confirmBooking() {
@@ -396,29 +627,52 @@
             btn.textContent = 'Processing...';
             btn.disabled = true;
 
+            if (paymentMethod === 'wallet' && userWalletBalance < selectedWorkerPrice) {
+                alert('Insufficient wallet balance. Please add more money or choose another payment method.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                return;
+            }
+
             const newBooking = {
-                customerId: user.uid, // From logged in user
-                customerName: user.name, // Send name for display
-                // If worker isn't selected, send 'auto-assign' or handle in backend. 
-                // Using selectedWorker variable which holds name for now, but backend expects workerId if specific.
-                // For this implementation, we'll send a placeholder or handle it if selectedWorker is a name.
-                // In a real app we'd need the worker's UID from the selection card.
-                workerId: 'auto-assign', // Placeholder since we don't have worker UIDs in the mock generator
+                customerId: user.uid,
+                customerName: user.name,
+                workerId: 'auto-assign',
                 workerName: selectedWorker || 'Any Professional',
                 serviceType: serviceType,
                 date: document.getElementById('booking-date').value,
                 time: document.getElementById('booking-time').value,
                 address: document.getElementById('booking-address').value,
-                price: 450
+                price: selectedWorkerPrice,
+                paymentMethod: paymentMethod
             };
 
             try {
+                // 1. Create the booking
                 const response = await API.jobs.create(newBooking);
 
-                // Optional: Store in local storage as cache or just rely on fetching
+                // 2. If paying via wallet, deduct the amount
+                if (paymentMethod === 'wallet') {
+                    const hostname = window.location.hostname;
+                    const deductRes = await fetch(`http://${hostname}:5000/api/payments/deduct`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: user.uid,
+                            amount: selectedWorkerPrice,
+                            description: `Payment for ${serviceType} (Booking #${response.id})`,
+                            bookingId: response.id
+                        })
+                    });
+                    const deductData = await deductRes.json();
+                    if (!deductData.success) {
+                        console.warn('Wallet deduction failed after booking creation:', deductData.error);
+                        // In a real app we might want to cancel the booking or mark as unpaid
+                    }
+                }
+
+                // 3. Update Local Storage
                 let bookings = Storage.get('karyasetu_bookings') || [];
-                // Map backend response to local format if needed or just fetch fresh on dashboard
-                // For immediate UI feedback without refetching on dashboard yet:
                 bookings.unshift({
                     id: response.id,
                     service: newBooking.serviceType,
@@ -427,7 +681,7 @@
                     time: newBooking.time,
                     address: newBooking.address,
                     status: 'Pending',
-                    price: 450
+                    price: selectedWorkerPrice
                 });
                 Storage.set('karyasetu_bookings', bookings);
 
@@ -482,6 +736,7 @@
 
             // Attempt to fetch real workers
             let workers = await fetchWorkers(serviceType);
+            allFetchedWorkers = workers; // Store globally for the modal
 
             // FALLBACK TO MOCK if no real workers found (so the UI isn't empty for demo)
             // Ideally, we'd just show "No workers found", but for smooth demo flow:
@@ -519,23 +774,26 @@
                 const bg = `linear-gradient(135deg, var(--neon-blue), var(--neon-purple))`;
 
                 return `
-                <div class="worker-selection-card" onclick="selectWorker(this, '${name}', ${price})">
-                    <div class="avatar" style="background: ${bg}; color: white; border: 1px solid rgba(255,255,255,0.2);">${initials}</div>
-                    <div style="flex: 1;">
-                        <h4 style="margin-bottom:0.2rem;">${name}</h4>
-                        <p class="text-muted" style="font-size: 0.85rem;">${badge} • ${rating} ⭐ (${reviews} reviews)</p>
-                        
-                        <!-- Tracking Availability Indicator -->
-                        <div style="font-size: 0.7rem; margin-top: 4px; display: flex; align-items: center; gap: 6px; opacity: 0.9;">
-                           <i class="fas fa-map-marker-alt" style="color: ${isTrackable ? 'var(--neon-blue)' : 'rgba(255,255,255,0.3)'}"></i>
-                           <span style="color: ${isTrackable ? '#fff' : 'rgba(255,255,255,0.5)'}; font-weight: ${isTrackable ? '600' : '400'}">
-                               ${isTrackable ? 'Live Tracking Available' : 'Tracking Unavailable'}
-                           </span>
+                <div class="worker-selection-card" onclick="selectWorker(this, '${name}', ${price}, '${w.uid}')">
+                    <div class="card-avatar">${initials}</div>
+                    <div class="card-info">
+                        <div class="card-header">
+                            <h4 class="worker-name">${name}</h4>
+                            <div class="worker-price">₹${price}<span>/hr</span></div>
                         </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <p style="font-weight: bold; font-size: 1.1rem; color: #fff;">₹${price}<span style="font-size:0.7rem; font-weight:normal; color:var(--text-muted);">/hr</span></p>
-                        ${rating > 4.7 ? '<p style="font-size: 0.7rem; color: var(--neon-green);">Highly Recommended</p>' : ''}
+                        <div class="worker-meta">
+                            <span>${badge}</span>
+                            <span>•</span>
+                            <span>${rating} <i class="fas fa-star rating-star"></i></span>
+                            <span>(${reviews} reviews)</span>
+                        </div>
+                        <div class="tracking-status ${isTrackable ? 'tracking-live' : 'tracking-unavailable'}">
+                            <i class="fas ${isTrackable ? 'fa-map-marker-alt' : 'fa-map-marker-slash'}"></i>
+                            ${isTrackable ? 'Live Tracking Available' : 'Tracking Unavailable'}
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff;" onclick="event.stopPropagation(); showWorkerProfile('${w.uid}')">View Details</button>
+                        </div>
                     </div>
                 </div>
             `}).join('');
@@ -543,15 +801,60 @@
 
         // Initial Render
         renderWorkers();
+        fetchWalletBalance();
 
-        function selectWorker(card, name, price) {
+        function selectWorker(card, name, price, uid) {
             document.querySelectorAll('.worker-selection-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedWorker = name;
+            selectedWorkerId = uid;
+            selectedWorkerPrice = price;
 
-            // Update summary price if needed (optional enhancement)
+            // Update summary total
             const summaryTotal = document.querySelector('#step-4 span[style*="var(--neon-blue)"]');
             if (summaryTotal) summaryTotal.textContent = '₹' + price;
+        }
+
+        let allFetchedWorkers = []; // To store for modal lookup
+
+        async function showWorkerProfile(uid) {
+            const worker = allFetchedWorkers.find(w => w.uid === uid);
+            if (!worker) return;
+
+            const modal = document.getElementById('worker-profile-modal');
+            const profile = worker.profile || {};
+            const name = worker.name || 'Professional';
+            const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+            document.getElementById('modal-avatar').textContent = initials;
+            document.getElementById('modal-name').textContent = name;
+            document.getElementById('modal-category').textContent = `${worker.category || 'Specialist'} • ${profile.experience || 'Experienced'} Pro`;
+            document.getElementById('modal-rating').innerHTML = `<i class="fas fa-star"></i> ${worker.rating_avg || 4.5} (${Math.floor(Math.random() * 50) + 10} Reviews)`;
+            document.getElementById('modal-rate').textContent = `₹${profile.hourlyRate || 350}/hr`;
+            document.getElementById('modal-location').textContent = profile.location || 'Mumbai';
+            document.getElementById('modal-bio').textContent = profile.bio || worker.bio || "No detailed bio provided by this professional yet.";
+
+            const skillsContainer = document.getElementById('modal-skills');
+            const skills = profile.skills || (worker.category ? [worker.category] : ['Service Provider']);
+            skillsContainer.innerHTML = skills.map(s => `<span class="skill-tag">${s}</span>`).join('');
+
+            document.getElementById('modal-book-btn').onclick = () => {
+                // Find the card in the list to select it
+                const cards = document.querySelectorAll('.worker-selection-card');
+                cards.forEach(c => {
+                    if (c.innerHTML.includes(name)) {
+                        selectWorker(c, name, profile.hourlyRate || 350, uid);
+                    }
+                });
+                closeWorkerProfile();
+                goToStep(3); // Go to contact step
+            };
+
+            modal.classList.add('active');
+        }
+
+        function closeWorkerProfile() {
+            document.getElementById('worker-profile-modal').classList.remove('active');
         }
     </script>
 </body>

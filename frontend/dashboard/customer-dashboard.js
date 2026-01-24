@@ -10,34 +10,6 @@ const STORAGE_KEYS = {
     WALLET: 'karyasetu_wallet'
 };
 
-// --- RICH MOCK DATA (New Default) ---
-const richBookingsData = [
-    // ACTIVE
-    { id: 'BK-9012', service: 'Home Cleaning', worker: 'Sunita Devi', date: '2023-11-20', time: '10:00 AM', status: 'Active', price: 800 },
-    { id: 'BK-9015', service: 'Plumbing', worker: 'Rajesh Kumar', date: '2023-11-20', time: '12:30 PM', status: 'On the way', price: 450 },
-
-    // SCHEDULED
-    { id: 'BK-9100', service: 'Sofa Cleaning', worker: 'UrbanClean Team', date: '2023-11-25', time: '09:00 AM', status: 'Confirmed', price: 1500 },
-    { id: 'BK-9105', service: 'Painting', worker: 'Colors Inc', date: '2023-11-28', time: '10:00 AM', status: 'Scheduled', price: 5000 },
-    { id: 'BK-9120', service: 'Carpentry', worker: 'Suresh Wood', date: '2023-11-30', time: '02:00 PM', status: 'Scheduled', price: 800 },
-
-    // COMPLETED
-    { id: 'BK-8801', service: 'Electrical', worker: 'Amit Singh', date: '2023-11-10', time: '11:00 AM', status: 'Completed', price: 350 },
-    { id: 'BK-8755', service: 'Salon for Men', worker: 'Vikram Barber', date: '2023-11-05', time: '05:00 PM', status: 'Completed', price: 600 },
-    { id: 'BK-8600', service: 'Pest Control', worker: 'PestBusters', date: '2023-10-28', time: '03:00 PM', status: 'Completed', price: 1100 },
-    { id: 'BK-8900', service: 'RO Service', worker: 'PureWater', date: '2023-11-12', time: '04:00 PM', status: 'Completed', price: 550 },
-    { id: 'BK-7500', service: 'Gardening', worker: 'Green Thumb', date: '2023-09-15', time: '07:00 AM', status: 'Completed', price: 1200 },
-    { id: 'BK-7200', service: 'Appliance Repair', worker: 'FixIt fast', date: '2023-09-10', time: '05:30 PM', status: 'Completed', price: 400 },
-
-    // CANCELLED (Requested Examples)
-    { id: 'BK-8500', service: 'Massage Therapy', worker: 'Ayush Wellness', date: '2023-10-15', time: '06:00 PM', status: 'Cancelled', price: 1200 },
-    { id: 'BK-8400', service: 'Car Wash', worker: 'Express Wash', date: '2023-10-10', time: '08:00 AM', status: 'Cancelled', price: 400 },
-    { id: 'BK-8350', service: 'Yoga Session', worker: 'FitLife', date: '2023-10-05', time: '07:00 AM', status: 'Cancelled', price: 300 },
-    { id: 'BK-6000', service: 'Movers & Packers', worker: 'SafeMove', date: '2023-08-20', time: '09:00 AM', status: 'Cancelled', price: 5000 },
-    { id: 'BK-5500', service: 'Interior Design', worker: 'SpaceCrafters', date: '2023-08-15', time: '02:00 PM', status: 'Cancelled', price: 1500 }
-];
-
-
 // --- DOM Elements ---
 const getEl = (id) => document.getElementById(id);
 const getAll = (sel) => document.querySelectorAll(sel);
@@ -52,38 +24,28 @@ function init() {
         return;
     }
 
-    // --- FORCE DATA REFRESH LOGIC ---
-    // If bookings don't exist OR if we only have the old small default set (< 5 items),
-    // we force-overwrite with the new RICH dataset.
-    // --- DATA INTEGRITY CHECK ---
-    const currentBookings = Storage.get(STORAGE_KEYS.BOOKINGS);
-    let forceReset = false;
-
-    // Check 1: Too few items (old default)
-    if (!currentBookings || currentBookings.length < 5) forceReset = true;
-
-    // Check 2: Duplicate IDs (The "Disappearing" Bug)
-    if (currentBookings && currentBookings.length > 1) {
-        const ids = currentBookings.map(b => b.id);
-        const uniqueIds = new Set(ids);
-        if (uniqueIds.size !== ids.length) {
-            console.log('Detected duplicate booking IDs! Corrupted data.');
-            forceReset = true;
-        }
-    }
-
-    if (forceReset) {
-        console.log('Forcing update to Rich Mock Data to fix corruption...');
-        Storage.set(STORAGE_KEYS.BOOKINGS, richBookingsData);
+    // MIGRATION: Clear old mock bookings to avoid "nothing changed" confusion
+    if (!Storage.get('karyasetu_v2_migration')) {
+        console.log('Migrating to Dynamic Data... Clearing legacy mocks.');
+        Storage.remove(STORAGE_KEYS.BOOKINGS);
+        Storage.set('karyasetu_v2_migration', 'done');
     }
 
     setupEventListeners();
     updateUIWithUserData(userData);
-    updateDashboardStats();
+    updateDashboardStats(); // This now fetches live balance
 
+    // Initial data load from Firestore
+    refreshCustomerDashboardData();
+
+    startClock();
+    handleTabSwitching();
+}
+
+async function refreshCustomerDashboardData() {
     try {
-        renderOverview();
-        renderBookingsGrid(); // Loads 'all' by default
+        await renderOverview();
+        await renderBookingsGrid(); // Loads 'all' by default
         renderWallet();
         renderProfile();
         renderFavorites();
@@ -183,7 +145,13 @@ function updateUIWithUserData(user) {
     const userAvatarInit = getEl('user-avatar-initials');
     const userAvatarImg = getEl('user-avatar-img');
 
-    if (userNameDisp) userNameDisp.textContent = user.name || 'User';
+    const rPoints = user.reward_points || user.profile?.reward_points || 0;
+
+    if (userNameDisp) {
+        userNameDisp.innerHTML = `
+            ${user.name || 'User'} 
+        `;
+    }
     if (welcomeName) welcomeName.textContent = (user.name || 'User').split(' ')[0];
 
     if (user.profilePic && userAvatarImg) {
@@ -236,18 +204,304 @@ function loadTabData(tabId) {
         if (tabId === 'favorites') renderFavorites();
         if (tabId === 'support') renderSupport();
         if (tabId === 'nearby-workers') renderNearbyWorkers();
+        if (tabId === 'settings') renderSettings();
     } catch (e) {
         console.error(`Error loading data for tab ${tabId}:`, e);
+    }
+}
+
+function renderSettings() {
+    console.log('Rendering Settings...');
+    const method = localStorage.getItem('use_firestore_realtime') === 'true' ? 'firestore' : 'polling';
+
+    const pollingRadio = getEl('tracking-polling');
+    const firestoreRadio = getEl('tracking-firestore');
+
+    if (pollingRadio && firestoreRadio) {
+        if (method === 'firestore') {
+            firestoreRadio.checked = true;
+        } else {
+            pollingRadio.checked = true;
+        }
+    }
+}
+
+window.saveTrackingMethod = function (method) {
+    const isFirestore = method === 'firestore';
+    localStorage.setItem('use_firestore_realtime', isFirestore);
+    console.log(`Tracking method set to: ${method}`);
+
+    // If we're on the nearby-workers tab, refresh subscriptions
+    const activeTab = document.querySelector('.nav-item.active')?.getAttribute('data-tab');
+    if (activeTab === 'nearby-workers') {
+        renderNearbyWorkers(); // This will re-call subscribeToWorkerUpdates with the new method
+    }
+
+    showToast(`Tracking changed to ${method}`, 'success');
+};
+
+// --- Worker Profile Modal for Dashboard ---
+window.showWorkerProfileInDashboard = async function (uid) {
+    console.log('showWorkerProfileInDashboard called with uid:', uid);
+    try {
+        // Fetch full worker details (including profile)
+        const worker = await API.workers.getById(uid);
+        console.log('Worker data fetched:', worker);
+        if (!worker) {
+            console.error('Worker not found for uid:', uid);
+            alert('Could not load worker profile. Please try again.');
+            return;
+        }
+
+        // Trigger the modal
+        renderDashboardWorkerModal(worker);
+    } catch (e) {
+        console.error('Failed to show profile:', e);
+        alert('Error loading profile: ' + e.message);
+    }
+}
+
+function renderDashboardWorkerModal(worker) {
+    const modal = document.getElementById('dashboard-worker-modal');
+    if (!modal) return;
+
+    const name = worker.name || 'Professional';
+    const initials = name.substring(0, 2).toUpperCase();
+    const category = worker.category || 'Specialist';
+    const rating = worker.rating_avg || worker.stats?.avg_rating || 4.5;
+    const totalJobs = worker.stats?.total_jobs || worker.total_jobs || 0;
+    const experienceYears = worker.experience_years || 3;
+    const basePrice = worker.base_price || 500;
+    const bio = worker.bio || "Excellent professional with highly rated services.";
+    const phone = worker.phone || 'Not available';
+    const email = worker.email || '';
+    const isVerified = worker.is_verified || worker.verification_status === 'verified';
+    const qualifications = worker.qualifications || [];
+    const skills = worker.skills || [category];
+    const profilePic = worker.profile_pic || worker.avatar || '';
+
+    // Generate star rating HTML
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    let starsHtml = '';
+    for (let i = 0; i < fullStars; i++) {
+        starsHtml += '<i class="fas fa-star" style="color: var(--neon-orange);"></i>';
+    }
+    if (hasHalfStar) {
+        starsHtml += '<i class="fas fa-star-half-alt" style="color: var(--neon-orange);"></i>';
+    }
+    for (let i = 0; i < emptyStars; i++) {
+        starsHtml += '<i class="far fa-star" style="color: var(--neon-orange); opacity: 0.3;"></i>';
+    }
+
+    // Update modal with comprehensive details
+    const modalContent = modal.querySelector('.profile-modal-content');
+    modalContent.innerHTML = `
+        <button class="profile-close" onclick="closeDashboardWorkerModal()"><i class="fas fa-times"></i></button>
+        
+        <div class="profile-header-banner" style="background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); padding: 2rem; text-align: center; position: relative;">
+            ${isVerified ? '<div style="position: absolute; top: 15px; right: 15px; background: var(--neon-green); color: #000; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;"><i class="fas fa-check-circle"></i> VERIFIED</div>' : ''}
+            
+            ${profilePic ?
+            `<div style="width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; overflow: hidden; border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.3);">
+                    <img src="${profilePic}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>` :
+            `<div class="profile-avatar-large" style="width: 120px; height: 120px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: rgba(255,255,255,0.2); border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.3);">${initials}</div>`
+        }
+        </div>
+        
+        <div class="profile-body" style="padding: 2rem;">
+            <!-- Name & Title -->
+            <div style="text-align: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1.5rem;">
+                <h2 style="margin: 0; font-size: 1.8rem; color: #fff;">${name}</h2>
+                <p style="margin: 5px 0; color: var(--neon-blue); font-weight: 600; font-size: 1.1rem;">${category}</p>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px;">
+                    <div style="display: flex; gap: 3px;">${starsHtml}</div>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">${rating.toFixed(1)} (${totalJobs}+ jobs)</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats Grid -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--glass-border);">
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; color: var(--neon-blue); font-weight: 700;">${experienceYears}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Years Exp</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; color: var(--neon-green); font-weight: 700;">₹${basePrice}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Base Rate</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; color: var(--neon-purple); font-weight: 700;">${totalJobs}+</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Jobs Done</div>
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--glass-border);">
+                <h4 style="margin-bottom: 12px; color: #fff; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-address-card" style="color: var(--neon-blue);"></i> Contact Information
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+                    <div style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary);">
+                        <i class="fas fa-phone" style="width: 20px; color: var(--neon-green);"></i>
+                        <span>${phone}</span>
+                    </div>
+                    ${email ? `<div style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary);">
+                        <i class="fas fa-envelope" style="width: 20px; color: var(--neon-blue);"></i>
+                        <span>${email}</span>
+                    </div>` : ''}
+                </div>
+            </div>
+
+            ${qualifications.length > 0 ? `
+            <!-- Certifications -->
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin-bottom: 10px; color: #fff; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-certificate" style="color: var(--neon-orange);"></i> Certifications
+                </h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    ${qualifications.map(q => `<span style="background: rgba(255,165,0,0.1); color: var(--neon-orange); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,165,0,0.3);">${q}</span>`).join('')}
+                </div>
+            </div>
+            ` : ''}
+
+            <!-- About -->
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin-bottom: 10px; color: #fff; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-user-circle" style="color: var(--neon-purple);"></i> About Professional
+                </h4>
+                <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">${bio}</p>
+            </div>
+
+            <!-- Skills -->
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin-bottom: 10px; color: #fff; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-tools" style="color: var(--neon-blue);"></i> Skills & Expertise
+                </h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    ${skills.map(s => `<span class="skill-tag" style="background: rgba(0,210,255,0.1); color: var(--neon-blue); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(0,210,255,0.3);">${s}</span>`).join('')}
+                </div>
+            </div>
+
+            <!-- View Route History -->
+            <button class="btn btn-secondary" style="width: 100%; margin-bottom: 1.5rem; border: 1px solid var(--neon-purple); color: var(--neon-purple); background: rgba(157, 80, 187, 0.1); padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer;" onclick="closeDashboardWorkerModal(); window.visualizeWorkerHistory('${worker.uid || worker.id}')">
+                <i class="fas fa-route"></i> View Location Path (Beta)
+            </button>
+
+            <!-- Action Buttons -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <button class="btn btn-primary" style="background: var(--neon-blue); color: #000; font-weight: 700; padding: 0.75rem;" onclick="closeDashboardWorkerModal(); document.querySelector('[data-tab=book-service]').click()">
+                    <i class="fas fa-calendar-check"></i> Book Now
+                </button>
+                <button class="btn btn-secondary" style="border: 2px solid var(--neon-green); color: var(--neon-green); background: transparent; font-weight: 700; padding: 0.75rem;" onclick="window.open('tel:${phone}')">
+                    <i class="fas fa-phone-alt"></i> Call Now
+                </button>
+            </div>
+        </div>
+    `;
+
+    modal.classList.add('active');
+}
+
+window.closeDashboardWorkerModal = function () {
+    document.getElementById('dashboard-worker-modal')?.classList.remove('active');
+}
+
+window.visualizeWorkerHistory = async function (workerId) {
+    console.log(`🎬 Visualizing history for worker: ${workerId}`);
+    try {
+        const history = await API.workers.getLocationHistory(workerId);
+
+        if (!history || history.length < 2) {
+            alert("No travel history found for this professional recently.");
+            return;
+        }
+
+        if (!nearbyMap) {
+            alert("Please open the Nearby Workers map first.");
+            return;
+        }
+
+        // Draw on map
+        const latlngs = history.map(p => [p.lat, p.lng]);
+
+        // Remove old polyline if any
+        if (window.historyPolyline) {
+            nearbyMap.removeLayer(window.historyPolyline);
+        }
+
+        window.historyPolyline = L.polyline(latlngs, {
+            color: '#a855f7', // purple-500
+            weight: 5,
+            opacity: 0.8,
+            dashArray: '10, 15',
+            lineJoin: 'round',
+            className: 'history-path-animation'
+        }).addTo(nearbyMap);
+
+        // Add start and end icons
+        const startIcon = L.divIcon({ html: '<i class="fas fa-play-circle" style="color: #a855f7;"></i>', className: 'history-edge' });
+        const endIcon = L.divIcon({ html: '<i class="fas fa-flag-checkered" style="color: #34d399;"></i>', className: 'history-edge' });
+
+        const startMarker = L.marker(latlngs[0], { icon: startIcon }).addTo(nearbyMap);
+        const endMarker = L.marker(latlngs[latlngs.length - 1], { icon: endIcon }).addTo(nearbyMap);
+
+        // Zoom to fit
+        nearbyMap.fitBounds(window.historyPolyline.getBounds(), { padding: [100, 100] });
+
+        console.log(`✅ Path drawn with ${history.length} points.`);
+
+        // Auto-cleanup helper
+        const cleanup = () => {
+            if (window.historyPolyline) nearbyMap.removeLayer(window.historyPolyline);
+            nearbyMap.removeLayer(startMarker);
+            nearbyMap.removeLayer(endMarker);
+            window.historyPolyline = null;
+        };
+
+        // Add a "Clear Path" button to the map or just auto-remove
+        setTimeout(cleanup, 45000); // 45 seconds
+
+    } catch (e) {
+        console.error("History visualization error:", e);
+        alert("Error loading history: " + e.message);
     }
 }
 
 // Expose to window for inline HTML access
 window.handleAIMessage = handleAIMessage;
 
-function updateDashboardStats() {
-    const statsGrid = document.querySelector('.stats-grid');
-    if (statsGrid) {
-        statsGrid.style.display = 'none';
+async function updateDashboardStats() {
+    const user = Storage.get(STORAGE_KEYS.USER);
+    if (!user || !user.uid) return;
+
+    try {
+        // Fetch real wallet balance from API
+        const hostname = window.location.hostname;
+        const response = await fetch(`http://${hostname}:5000/api/payments/balance/${user.uid}`);
+        const data = await response.json();
+
+        const walletBalEl = getEl('stat-wallet-bal');
+        if (walletBalEl && data.success) {
+            walletBalEl.textContent = `₹${data.balance.toFixed(2)}`;
+            // Also update local storage for persistence
+            user.wallet = { balance: data.balance };
+            Storage.set(STORAGE_KEYS.USER, user);
+        }
+
+        // Update booking counts
+        const bookings = Storage.get(STORAGE_KEYS.BOOKINGS) || [];
+        const activeCount = bookings.filter(b => ['Active', 'On the way', 'Running', 'Pending'].includes(b.status)).length;
+        const completedCount = bookings.filter(b => b.status === 'Completed').length;
+
+        if (getEl('stat-active-count')) getEl('stat-active-count').textContent = activeCount;
+        if (getEl('stat-completed-count')) getEl('stat-completed-count').textContent = completedCount;
+
+    } catch (error) {
+        console.error('Error updating dashboard stats:', error);
     }
 }
 
@@ -442,12 +696,6 @@ function renderOverview() {
 
     let bookings = Storage.get(STORAGE_KEYS.BOOKINGS) || [];
 
-    // FAIL-SAFE: If data is wiped, restore it immediately
-    if (bookings.length === 0) {
-        console.log('No bookings found (Data Loss Detected). Restoring default data...');
-        bookings = richBookingsData;
-        Storage.set(STORAGE_KEYS.BOOKINGS, bookings);
-    }
     // Broadened filter to ensure 'On the way' and other active states show up
     const activeBookings = bookings.filter(b => ['Active', 'Confirmed', 'Scheduled', 'On the way', 'Running', 'Pending'].includes(b.status));
     const calendar = generateOverviewCalendar(bookings);
@@ -711,23 +959,39 @@ window.filterBookings = function (type) {
 };
 
 window.openTracking = function (id) {
-    window.location.href = `tracking.html?bookingId=${id}`;
+    // Open the new live tracking page
+    window.location.href = `../tracking/live-customer.html?bookingId=${id}`;
 };
 
-function renderWallet() {
+async function renderWallet() {
     const container = getEl('wallet-container');
     if (!container) return;
 
     const user = Storage.get(STORAGE_KEYS.USER) || {};
+    let balance = 0;
+    let transactions = [];
+
+    try {
+        const balData = await API.payments.getBalance(user.uid);
+        if (balData.success) balance = balData.balance;
+
+        const transactionsData = await API.transactions.getByUser(user.uid);
+        transactions = transactionsData; // Backend returns array directly for this endpoint
+    } catch (e) {
+        console.error('Wallet data fetch failed:', e);
+    }
+
     container.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
             <!-- Balance Card -->
-            <div class="stat-card" style="background: linear-gradient(135deg, var(--bg-dark-600), var(--bg-dark-800)); border-color: var(--neon-blue);">
+            <div class="stat-card" style="background: linear-gradient(135deg, var(--bg-dark-600), var(--bg-dark-800)); border-color: var(--neon-blue); position: relative; overflow: hidden;">
                 <p class="text-muted" style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">Available Balance</p>
-                <h1 style="font-size: 3rem; margin: 1rem 0;">₹1,250.00</h1>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-primary btn-sm" onclick="showToast('Add money feature coming soon!')">Add Money</button>
-                    <button class="btn btn-secondary btn-sm" onclick="showToast('Withdraw feature coming soon!')">Withdraw</button>
+                <h1 style="font-size: 3rem; margin: 1rem 0;">₹${balance.toFixed(2)}</h1>
+                <p style="color: var(--neon-green); font-size: 0.9rem; margin-bottom: 1.5rem;"><i class="fas fa-gift"></i> ${user.reward_points || 0} Reward Points Available</p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="../wallet/add-money.html" class="btn btn-primary btn-sm" style="text-decoration:none;">Add Money</a>
+                    <a href="../wallet/add-money-demo.html" class="btn btn-secondary btn-sm" style="text-decoration:none;">Demo Top-up</a>
+                    <button class="btn btn-ghost btn-sm" onclick="showToast('Withdraw feature coming soon!')">Withdraw</button>
                 </div>
             </div>
 
@@ -843,9 +1107,14 @@ function renderProfile() {
                 <!-- Name Section -->
                 <div>
                     <h2 style="margin: 0; font-size: 1.8rem;">${user.name || 'User Name'}</h2>
-                    <p class="text-muted" style="margin: 0.25rem 0 0;">Customer Account</p>
+                    <p class="text-muted" style="margin: 0.25rem 0 0;">Customer Account • ${user.reward_points || user.profile?.reward_points || 0} Reward Points</p>
                     ${user.profilePic ? `<button onclick="removeProfilePic()" class="btn btn-sm btn-ghost" style="color: var(--neon-pink); margin-top: 0.5rem; padding: 0; font-size: 0.8rem;"><i class="fas fa-trash-alt"></i> Remove Photo</button>` : ''}
                 </div>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label class="text-muted" style="font-size: 0.8rem; display: block; margin-bottom: 0.5rem;">BIO / ABOUT YOU</label>
+                <textarea id="edit-bio" disabled style="width: 100%; min-height: 80px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 8px; color: #fff; padding: 10px; font-size: 0.95rem; resize: vertical; outline: none;">${user.bio || user.profile?.bio || 'Tell us a bit about yourself...'}</textarea>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
@@ -1173,6 +1442,8 @@ function openBookingPage(serviceType) {
     Storage.set('karyasetu_selected_service', serviceType);
     window.location.href = 'booking.html';
 }
+// Expose to window for inline HTML access
+window.openBookingPage = openBookingPage;
 
 function cancelBooking(bookingId) {
     if (confirm('Are you sure you want to cancel this booking?')) {
@@ -1206,7 +1477,8 @@ async function handleProfileEditToggle() {
     const btn = getEl('edit-profile-btn');
     const inputs = [
         'edit-name', 'edit-email', 'edit-phone', 'edit-joined',
-        'edit-house', 'edit-landmark', 'edit-city', 'edit-pincode'
+        'edit-house', 'edit-landmark', 'edit-city', 'edit-pincode',
+        'edit-bio'
     ];
 
     if (btn.textContent.includes('Edit')) {
@@ -1240,7 +1512,8 @@ async function handleProfileEditToggle() {
                 landmark: getEl('edit-landmark').value,
                 city: getEl('edit-city').value,
                 pincode: getEl('edit-pincode').value
-            }
+            },
+            bio: getEl('edit-bio').value
         };
 
         try {
@@ -1267,7 +1540,8 @@ async function handleProfileEditToggle() {
             // Switch back to "Edit" View
             const inputIds = [
                 'edit-name', 'edit-email', 'edit-phone', 'edit-joined',
-                'edit-house', 'edit-landmark', 'edit-city', 'edit-pincode'
+                'edit-house', 'edit-landmark', 'edit-city', 'edit-pincode',
+                'edit-bio'
             ];
             inputIds.forEach(id => {
                 const el = getEl(id);
@@ -1294,75 +1568,140 @@ async function handleProfileEditToggle() {
 }
 
 // Run on load
-document.addEventListener('DOMContentLoaded', init);
+// Only initialize if we are on the dashboard page
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('ai-chat-popup')) {
+        init();
+    }
+});
 
 // --- Nearby Workers Map Feature ---
-const nearbyWorkersMock = [
-    { id: 'W-001', name: 'Rajesh Kumar', category: 'Plumbing', rating: 4.8, jobs: 156, lat: 19.0760, lng: 72.8777, avatar: 'RK', status: 'Online' },
-    { id: 'W-002', name: 'Amit Singh', category: 'Electrical', rating: 4.9, jobs: 243, lat: 19.0850, lng: 72.8900, avatar: 'AS', status: 'Online' },
-    { id: 'W-003', name: 'Sunita Devi', category: 'Cleaning', rating: 4.7, jobs: 189, lat: 19.0600, lng: 72.8600, avatar: 'SD', status: 'Online' },
-    { id: 'W-004', name: 'Vikram Barber', category: 'Salon', rating: 4.9, jobs: 312, lat: 19.0900, lng: 72.8700, avatar: 'VB', status: 'Busy' },
-    { id: 'W-005', name: 'Anita Sharma', category: 'Cleaning', rating: 4.6, jobs: 124, lat: 19.0700, lng: 72.9000, avatar: 'AS', status: 'Online' },
-    { id: 'W-006', name: 'Suresh Wood', category: 'Carpentry', rating: 4.8, jobs: 215, lat: 19.1000, lng: 72.8800, avatar: 'SW', status: 'Online' }
-];
-
 let nearbyMap = null;
 let mapMarkers = [];
+let customerMarker = null;
+let customerLocation = { lat: 19.0760, lng: 72.8777 }; // Default: Mumbai
+
+// Get customer's current location
+function getCustomerLocation() {
+    return new Promise((resolve) => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    customerLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    console.log('Customer location obtained:', customerLocation);
+                    resolve(customerLocation);
+                },
+                (error) => {
+                    console.warn('Geolocation error:', error.message, '- Using default location');
+                    resolve(customerLocation);
+                },
+                { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
+            );
+        } else {
+            console.warn('Geolocation not supported - Using default location');
+            resolve(customerLocation);
+        }
+    });
+}
 
 async function renderNearbyWorkers(category = 'all') {
     const listContainer = getEl('nearby-workers-list');
-    if (!listContainer) return;
+    if (!listContainer) {
+        console.error('nearby-workers-list element not found!');
+        return;
+    }
 
-    listContainer.innerHTML = '<div style="color: #aaa; text-align: center; padding: 2rem;">Loading professionals...</div>';
+    listContainer.innerHTML = '<div style="color: #aaa; text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> Loading professionals...</div>';
 
     try {
-        const filters = category === 'all' ? {} : { skill: category };
+        // Get customer location first
+        await getCustomerLocation();
+        console.log('Customer location:', customerLocation);
+
+        // Build filters - simplified to match backend
+        const filters = {};
+
+        if (category !== 'all') {
+            filters.category = category.toLowerCase();
+        }
+
+        console.log('Fetching workers with filters:', filters);
         const workers = await API.workers.getAll(filters);
+        console.log(`API returned ${workers.length} workers:`, workers);
 
-        // Map Backend Data to UI Format
-        const mappedWorkers = workers.map(w => ({
-            id: w.uid,
-            name: w.name || 'Unknown Worker',
-            category: w.profile?.skills?.[0] || 'General', // Take first skill as primary
-            rating: 4.8, // Mock rating as backend doesn't have it yet
-            jobs: 12, // Mock job count
-            lat: w.profile?.location?.lat || (19.0760 + (Math.random() - 0.5) * 0.1), // Mock location or use real
-            lng: w.profile?.location?.lng || (72.8777 + (Math.random() - 0.5) * 0.1),
-            avatar: (w.name || 'W').substring(0, 2).toUpperCase(),
-            status: 'Online' // Mock status
-        }));
-
-        if (mappedWorkers.length === 0) {
-            listContainer.innerHTML = '<div style="color: #aaa; text-align: center; padding: 2rem;">No workers found in this category.</div>';
+        if (workers.length === 0) {
+            listContainer.innerHTML = '<div style="color: #aaa; text-align: center; padding: 2rem;"><i class="fas fa-user-slash"></i><br><br>No workers found in this category.</div>';
+            // Still initialize map with customer location
+            setTimeout(() => initNearbyMap([]), 100);
             return;
         }
 
-        listContainer.innerHTML = mappedWorkers.map(w => `
-            <div class="nearby-worker-card" style="padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border: 1px solid var(--glass-border); cursor: pointer; transition: all 0.3s ease; margin-bottom: 0.5rem;" 
-                 onclick="focusOnWorker('${w.id}')">
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <div class="avatar" style="min-width: 45px; height: 45px; border: 1px solid var(--neon-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; background: rgba(0, 210, 255, 0.1);">${w.avatar}</div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h4 style="margin: 0; font-size: 0.95rem; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${w.name}</h4>
-                            <span style="font-size: 0.65rem; color: ${w.status === 'Online' ? 'var(--neon-green)' : 'var(--neon-orange)'}; font-weight: bold;">● ${w.status.toUpperCase()}</span>
+        listContainer.innerHTML = workers.map(w => {
+            const name = w.name || 'Unknown Worker';
+            const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const skill = (w.category || 'General').charAt(0).toUpperCase() + (w.category || 'General').slice(1);
+            const rating = w.rating_avg || 4.5;
+            const totalJobs = w.stats?.total_jobs || w.total_jobs || 0;
+            const price = w.base_price || 350;
+            const isTrackable = !!w.location;
+            const distance = w.distance ? `${w.distance.toFixed(1)} km away` : '';
+            const isOnline = w.is_online !== false;
+
+            return `
+                <div class="nearby-worker-card ${!isOnline ? 'offline' : ''}" onclick="window.focusOnWorker('${w.uid}')">
+                    <div class="card-avatar-wrapper">
+                        <div class="card-avatar">${initials}</div>
+                        ${isOnline ? '<div class="online-indicator"></div>' : ''}
+                    </div>
+                    <div class="card-info">
+                        <div class="card-header">
+                            <h4 class="worker-name">${name}</h4>
+                            <div class="worker-price">₹${price}<span>/hr</span></div>
                         </div>
-                        <p class="text-muted" style="font-size: 0.75rem; margin: 2px 0;">${w.category}</p>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-                            <span style="font-size: 0.75rem; color: #fff;"><i class="fas fa-star" style="color: var(--neon-orange); font-size: 0.7rem;"></i> ${w.rating}</span>
-                            <button class="btn btn-sm" style="padding: 2px 8px; font-size: 0.65rem; background: rgba(0, 210, 255, 0.1); border: 1px solid var(--neon-blue); color: var(--neon-blue); border-radius: 4px;" onclick="event.stopPropagation(); openBookingPage('${w.category}')">Book Now</button>
+                        <div class="worker-meta">
+                            <span><i class="fas fa-briefcase"></i> ${skill}</span>
+                            <span>•</span>
+                            <span><i class="fas fa-star" style="color: var(--neon-orange);"></i> ${rating.toFixed(1)}</span>
+                            <span>(${totalJobs}+ jobs)</span>
+                        </div>
+                        ${distance ? `<div class="worker-distance"><i class="fas fa-location-arrow"></i> ${distance}</div>` : ''}
+                        <div class="tracking-status ${isTrackable ? 'tracking-live' : 'tracking-unavailable'}">
+                            <i class="fas ${isTrackable ? 'fa-map-marker-alt' : 'fa-map-marker-slash'}"></i>
+                            ${isTrackable ? 'Live Location' : 'Location Unavailable'}
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); window.showWorkerProfileInDashboard('${w.uid}')"><i class="fas fa-info-circle"></i> Details</button>
+                            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); window.openBookingPage('${w.category}')"><i class="fas fa-calendar-check"></i> Book</button>
                         </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
-        // Update map
-        setTimeout(() => initNearbyMap(mappedWorkers), 100);
+        // Update map with workers and customer location
+        setTimeout(() => initNearbyMap(workers.map(w => ({
+            id: w.uid,
+            name: w.name,
+            category: w.category,
+            rating: w.rating_avg || 4.5,
+            lat: w.location?.lat,
+            lng: w.location?.lng,
+            price: w.base_price || 350,
+            isOnline: w.is_online !== false
+        })).filter(w => w.lat && w.lng)), 100);
+
+        // Subscribe to real-time updates for all workers
+        if (typeof subscribeToWorkerUpdates === 'function') {
+            const workerIds = workers.map(w => w.uid).filter(uid => uid);
+            subscribeToWorkerUpdates(workerIds);
+        }
 
     } catch (error) {
-        console.error('Failed to load workers:', error);
-        listContainer.innerHTML = '<div style="color: var(--error); text-align: center; padding: 2rem;">Failed to load professionals.</div>';
+        console.error('Error loading nearby workers:', error);
+        listContainer.innerHTML = '<div style="color: #ff4444; text-align: center; padding: 2rem;"><i class="fas fa-exclamation-triangle"></i><br><br>Failed to load workers. Please try again.</div>';
     }
 
     // One-time setup for controls
@@ -1377,58 +1716,203 @@ async function renderNearbyWorkers(category = 'all') {
     }
 }
 
+function getCategoryColor(category) {
+    const colors = {
+        'plumber': '#00d2ff',
+        'plumbing': '#00d2ff',
+        'electrician': '#ff9d00',
+        'electrical': '#ff9d00',
+        'carpenter': '#8b4513',
+        'painter': '#9d50bb',
+        'painting': '#9d50bb',
+        'cleaning': '#39ff14',
+        'cleaner': '#39ff14',
+        'mechanic': '#f00b47'
+    };
+    return colors[category?.toLowerCase()] || '#00d2ff';
+}
+
 function initNearbyMap(workers) {
     const mapEl = getEl('nearby-map');
-    if (!mapEl) return;
 
+    // Debug logging
+    console.log('🗺️ initNearbyMap called with', workers.length, 'workers');
+    console.log('Map element exists:', !!mapEl);
+    console.log('Leaflet loaded:', typeof L !== 'undefined');
+
+    if (!mapEl) {
+        console.error('❌ Map container #nearby-map not found!');
+        return;
+    }
+
+    if (typeof L === 'undefined') {
+        console.error('❌ Leaflet library not loaded!');
+        return;
+    }
+
+    // Initialize map if not exists
     if (!nearbyMap) {
-        nearbyMap = L.map('nearby-map').setView([19.0760, 72.8777], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CARTO',
-            maxZoom: 20
-        }).addTo(nearbyMap);
+        try {
+            console.log('Creating new Leaflet map...');
+            nearbyMap = L.map('nearby-map', {
+                zoomControl: true,
+                scrollWheelZoom: true
+            }).setView([customerLocation.lat, customerLocation.lng], 13);
+
+            console.log('✅ Map created, adding tile layer...');
+
+            // Dark theme tile layer
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+                maxZoom: 19,
+                minZoom: 10
+            }).addTo(nearbyMap);
+
+            console.log('✅ Tile layer added');
+
+            // Add scale control
+            L.control.scale({ imperial: false, metric: true }).addTo(nearbyMap);
+
+            // Add custom recenter button
+            const recenterControl = L.Control.extend({
+                options: { position: 'topright' },
+                onAdd: function () {
+                    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+                    container.innerHTML = '<a href="#" title="Center on my location" style="background: rgba(15, 23, 42, 0.9); color: var(--neon-green); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid var(--glass-border);"><i class="fas fa-crosshairs"></i></a>';
+                    container.onclick = (e) => {
+                        e.preventDefault();
+                        if (customerMarker && nearbyMap) {
+                            nearbyMap.setView(customerMarker.getLatLng(), 14);
+                            customerMarker.openPopup();
+                        }
+                    };
+                    return container;
+                }
+            });
+            nearbyMap.addControl(new recenterControl());
+
+            console.log('✅ Map fully initialized');
+        } catch (error) {
+            console.error('❌ Error creating map:', error);
+            return;
+        }
     }
 
     // Clear existing markers
     mapMarkers.forEach(m => nearbyMap.removeLayer(m));
     mapMarkers = [];
 
-    // Custom Icon
-    const workerIcon = L.divIcon({
-        className: 'custom-div-icon',
-        html: `<div style="background-color:var(--neon-blue); width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 10px var(--neon-blue);"></div>`,
-        iconSize: [12, 12],
-        iconAnchor: [6, 6]
+    // Add customer location marker (green)
+    if (customerMarker) {
+        nearbyMap.removeLayer(customerMarker);
+    }
+
+    console.log('Adding customer marker at:', customerLocation);
+
+    const customerIcon = L.divIcon({
+        className: 'customer-marker-icon',
+        html: `<div style="position: relative;">
+            <div style="background: var(--neon-green); width: 20px; height: 20px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 20px var(--neon-green), 0 0 10px rgba(57, 255, 20, 0.5);"></div>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: #000; border-radius: 50%;"></div>
+        </div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
     });
 
-    // Add new markers
+    customerMarker = L.marker([customerLocation.lat, customerLocation.lng], {
+        icon: customerIcon,
+        zIndexOffset: 1000
+    }).addTo(nearbyMap);
+
+    customerMarker.bindPopup(`
+        <div style="background: #1a1a1a; color: #fff; padding: 12px; border-radius: 8px; font-family: 'Inter', sans-serif; min-width: 150px;">
+            <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: var(--neon-green);"><i class="fas fa-map-marker-alt"></i> Your Location</h4>
+            <p style="margin: 0; font-size: 0.75rem; color: #aaa;">Searching for workers nearby...</p>
+        </div>
+    `, { className: 'dark-popup' });
+
+    console.log('✅ Customer marker added');
+
+    // Add worker markers
+    console.log('Adding', workers.length, 'worker markers...');
+    let addedMarkers = 0;
+
     workers.forEach(w => {
+        if (!w.lat || !w.lng) {
+            console.warn('Skipping worker without location:', w.name);
+            return;
+        }
+
+        const categoryColor = getCategoryColor(w.category);
+        const initials = (w.name || 'W').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+        const workerIcon = L.divIcon({
+            className: 'worker-marker-icon',
+            html: `<div style="position: relative;">
+                <div style="background: ${categoryColor}; width: 36px; height: 36px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 15px ${categoryColor}80; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; color: #000;">
+                    ${initials}
+                </div>
+                ${w.isOnline ? `<div style="position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; background: var(--neon-green); border: 2px solid #fff; border-radius: 50%;"></div>` : ''}
+            </div>`,
+            iconSize: [42, 42],
+            iconAnchor: [21, 21],
+            popupAnchor: [0, -21]
+        });
+
         const marker = L.marker([w.lat, w.lng], { icon: workerIcon }).addTo(nearbyMap);
         marker.bindPopup(`
-            <div style="background: #1a1a1a; color: #fff; padding: 10px; border-radius: 8px; font-family: 'Inter', sans-serif;">
-                <h4 style="margin: 0; font-size: 0.9rem;">${w.name}</h4>
-                <p style="margin: 4px 0; font-size: 0.75rem; color: #aaa;">${w.category}</p>
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                    <span style="font-size: 0.75rem;"><i class="fas fa-star" style="color:var(--neon-orange)"></i> ${w.rating}</span>
-                    <button onclick="openBookingPage('${w.category}')" style="background: var(--neon-blue); border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; color: #000; font-weight: bold; font-size: 0.7rem;">Book</button>
+            <div style="background: linear-gradient(145deg, #1a1a1a, #0a0b14); color: #fff; padding: 15px; border-radius: 12px; font-family: 'Inter', sans-serif; min-width: 200px; border: 1px solid ${categoryColor}40;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <div style="width: 40px; height: 40px; background: ${categoryColor}20; border: 2px solid ${categoryColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: ${categoryColor};">
+                        ${initials}
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 0.95rem; color: #fff;">${w.name}</h4>
+                        <p style="margin: 2px 0 0 0; font-size: 0.7rem; color: ${categoryColor}; text-transform: uppercase; font-weight: 600;">${w.category}</p>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span style="font-size: 0.75rem; color: #aaa;"><i class="fas fa-star" style="color: var(--neon-orange);"></i> ${w.rating.toFixed(1)}</span>
+                    <span style="font-size: 0.85rem; font-weight: 700; color: var(--neon-green);">₹${w.price}/hr</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+                    <button onclick="event.stopPropagation(); window.showWorkerProfileInDashboard('${w.id}')" style="background: rgba(255,255,255,0.1); border: 1px solid ${categoryColor}40; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: #fff; font-weight: 600; font-size: 0.7rem; transition: all 0.2s;"><i class="fas fa-user"></i> Profile</button>
+                    <button onclick="event.stopPropagation(); window.openBookingPage('${w.category}')" style="background: ${categoryColor}; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: #000; font-weight: 700; font-size: 0.7rem; transition: all 0.2s;"><i class="fas fa-calendar-check"></i> Book</button>
                 </div>
             </div>
-        `, { className: 'dark-popup' });
+        `, { className: 'dark-popup', maxWidth: 250 });
+
         marker.workerId = w.id;
         mapMarkers.push(marker);
+        addedMarkers++;
     });
 
+    console.log(`✅ Added ${addedMarkers} worker markers to map`);
+
+    // Fit bounds to show all markers including customer
     if (workers.length > 0) {
-        const group = new L.featureGroup(mapMarkers);
+        const allMarkers = [...mapMarkers, customerMarker];
+        const group = new L.featureGroup(allMarkers);
         nearbyMap.fitBounds(group.getBounds().pad(0.1));
+        console.log('✅ Map bounds fitted');
+    } else {
+        // Just center on customer if no workers
+        nearbyMap.setView([customerLocation.lat, customerLocation.lng], 13);
+        console.log('✅ Map centered on customer (no workers)');
     }
+
+    // Invalidate size to fix display issues
+    setTimeout(() => {
+        nearbyMap.invalidateSize();
+        console.log('✅ Map size invalidated');
+    }, 100);
 }
 
 window.focusOnWorker = (workerId) => {
     const marker = mapMarkers.find(m => m.workerId === workerId);
     if (marker && nearbyMap) {
-        nearbyMap.setView(marker.getLatLng(), 15);
-        marker.openPopup();
+        nearbyMap.setView(marker.getLatLng(), 16, { animate: true, duration: 0.5 });
+        setTimeout(() => marker.openPopup(), 300);
     }
 };
 

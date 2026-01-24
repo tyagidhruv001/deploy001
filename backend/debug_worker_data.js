@@ -12,23 +12,21 @@ const db = admin.firestore();
 async function listWorkers() {
     console.log('--- Fetching Workers ---');
     try {
-        const snapshot = await db.collection('users').get();
+        const snapshot = await db.collection('workers').get();
         if (snapshot.empty) {
-            console.log('No users found.');
+            console.log('No documents found in "workers" collection.');
             return;
         }
 
         snapshot.forEach(doc => {
             const data = doc.data();
-            // Filter: show all provided it's relevant, but specifically highlight White
-            if (data.name && data.name.toLowerCase().includes('white')) {
-                console.log(`\n*** FOUND TARGET USER ***`);
-                console.log(`ID: ${doc.id}`);
-                console.log(`Name: ${data.name}`);
-                console.log(`Role: ${data.role}`);
-                console.log(`Profile:`, JSON.stringify(data.profile, null, 2));
-                console.log(`Service Area: ${data.serviceArea}`);
-            }
+            console.log(`\n--- Worker Doc Found ---`);
+            console.log(`ID: ${doc.id}`);
+            console.log(`Name in doc: ${data.name || 'MISSING'}`);
+            console.log(`Category: ${data.category || 'MISSING'}`);
+            console.log(`Online: ${data.is_online}`);
+            console.log(`Data keys:`, Object.keys(data));
+            console.log(`-------------------`);
         });
 
     } catch (error) {

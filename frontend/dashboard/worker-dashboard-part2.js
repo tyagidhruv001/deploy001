@@ -110,229 +110,388 @@ function getAvailabilityPage() {
 // EARNINGS PAGE
 // ============================================
 
-function getEarningsPage() {
-  const earnings = Storage.get('worker_earnings');
+// ============================================
+// EARNINGS PAGE
+// ============================================
 
-  return `
-    <div class="page-header">
-      <h1 class="page-title"><i class="fas fa-wallet" style="color:var(--success);"></i> My Earnings</h1>
-      <p class="page-subtitle">Track your income and financial performance</p>
-    </div>
-    
-    <div class="earnings-dashboard">
-      <!-- Summary Cards -->
-      <div class="earnings-summary-grid">
-        <div class="earnings-summary-card">
-          <div class="summary-icon"><i class="fas fa-calendar-day"></i></div>
-          <div class="summary-content">
-            <span class="summary-label">Today</span>
-            <span class="summary-value">₹${earnings.today}</span>
-          </div>
-        </div>
-        
-        <div class="earnings-summary-card">
-          <div class="summary-icon"><i class="fas fa-chart-bar"></i></div>
-          <div class="summary-content">
-            <span class="summary-label">This Week</span>
-            <span class="summary-value">₹${earnings.week.toLocaleString()}</span>
-          </div>
-        </div>
-        
-        <div class="earnings-summary-card">
-          <div class="summary-icon"><i class="fas fa-chart-line"></i></div>
-          <div class="summary-content">
-            <span class="summary-label">This Month</span>
-            <span class="summary-value">₹${earnings.month.toLocaleString()}</span>
-          </div>
-        </div>
-        
-        <div class="earnings-summary-card">
-          <div class="summary-icon"><i class="fas fa-gem"></i></div>
-          <div class="summary-content">
-            <span class="summary-label">Total Earned</span>
-            <span class="summary-value">₹${earnings.total.toLocaleString()}</span>
-          </div>
-        </div>
+async function fetchAndRenderEarningsPage() {
+  const user = Storage.get('karyasetu_user');
+  if (!user) return;
+
+  const container = document.getElementById('earnings-placeholder');
+  if (!container) return;
+
+  container.innerHTML = `
+      <div style="text-align:center; padding: 4rem;">
+          <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--success);"></i>
+          <p style="margin-top: 1rem; color: var(--text-tertiary);">Loading your earnings...</p>
       </div>
-      
-      <!-- Weekly Chart -->
-      <div class="card">
-        <div class="card-header">
-          <h2>Weekly Earnings</h2>
+  `;
+
+  try {
+    const transactions = await API.transactions.getByUser(user.uid);
+
+    // Calculate Metrics
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const earningsNow = new Date();
+    const startOfWeek = new Date(earningsNow.setDate(earningsNow.getDate() - earningsNow.getDay()));
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let today = 0, week = 0, month = 0, total = 0;
+
+    // Filter credits only for earnings
+    const credits = transactions.filter(t => t.type === 'credit');
+
+    credits.forEach(t => {
+      const date = new Date(t.createdAt);
+      const amount = parseFloat(t.amount);
+
+      if (date >= startOfDay) today += amount;
+      if (date >= startOfWeek) week += amount;
+      if (date >= startOfMonth) month += amount;
+      total += amount;
+    });
+
+    container.innerHTML = `
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-wallet" style="color:var(--success);"></i> My Earnings</h1>
+          <p class="page-subtitle">Track your income and financial performance</p>
         </div>
-        <div class="chart-container" style="height: 300px; position: relative;">
-          <canvas id="earningsChart"></canvas>
-        </div>
-      </div>
-      
-      <!-- Earnings History -->
-      <div class="card">
-        <div class="card-header">
-          <h2>Recent Transactions</h2>
-          <button class="btn-text" onclick="loadPage('wallet')">View All</button>
-        </div>
-        <div class="earnings-history">
-          ${earnings.history.map(transaction => `
-            <div class="earning-item">
-              <div class="earning-info">
-                <h4>${transaction.job}</h4>
-                <span class="earning-date">${formatDate(transaction.date)}</span>
-              </div>
-              <div class="earning-amount">
-                <span class="amount-value">+₹${transaction.amount}</span>
-                <span class="badge badge-success">${transaction.status}</span>
+        
+        <div class="earnings-dashboard">
+          <div class="earnings-summary-grid">
+            <div class="earnings-summary-card">
+              <div class="summary-icon"><i class="fas fa-calendar-day"></i></div>
+              <div class="summary-content">
+                <span class="summary-label">Today</span>
+                <span class="summary-value">₹${today.toLocaleString()}</span>
               </div>
             </div>
-          `).join('')}
-        </div>
-      </div>
-      
-      <!-- Pending Earnings -->
-      ${earnings.pending > 0 ? `
-        <div class="card pending-earnings-card">
-          <div class="card-header">
-            <h2><i class="fas fa-hourglass-half" style="color:var(--warning);"></i> Pending Earnings</h2>
+            <div class="earnings-summary-card">
+              <div class="summary-icon"><i class="fas fa-chart-bar"></i></div>
+              <div class="summary-content">
+                <span class="summary-label">This Week</span>
+                <span class="summary-value">₹${week.toLocaleString()}</span>
+              </div>
+            </div>
+            <div class="earnings-summary-card">
+              <div class="summary-icon"><i class="fas fa-chart-line"></i></div>
+              <div class="summary-content">
+                <span class="summary-label">This Month</span>
+                <span class="summary-value">₹${month.toLocaleString()}</span>
+              </div>
+            </div>
+            <div class="earnings-summary-card">
+              <div class="summary-icon"><i class="fas fa-gem"></i></div>
+              <div class="summary-content">
+                <span class="summary-label">Total Earned</span>
+                <span class="summary-value">₹${total.toLocaleString()}</span>
+              </div>
+            </div>
           </div>
-          <div class="pending-earnings-content">
-            <div class="pending-amount">₹${earnings.pending.toLocaleString()}</div>
-            <p>Will be available for withdrawal after job completion verification</p>
-            <button class="btn btn-secondary" onclick="showToast('Pending earnings will be released within 24 hours', 'info')">Learn More</button>
+          
+          <!-- Weekly Chart -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Weekly Earnings</h2>
+            </div>
+            <div class="chart-container" style="height: 300px; position: relative;">
+              <canvas id="earningsChart"></canvas>
+            </div>
+          </div>
+          
+          <!-- Recent Transactions -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Recent Transactions</h2>
+              <button class="btn-text" onclick="loadPage('wallet')">View All</button>
+            </div>
+            <div class="earnings-history">
+              ${credits.slice(0, 5).map(t => `
+                <div class="earning-item">
+                  <div class="earning-info">
+                    <h4>${t.description || t.source}</h4>
+                    <span class="earning-date">${new Date(t.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div class="earning-amount">
+                    <span class="amount-value">+₹${t.amount}</span>
+                    <span class="badge badge-success">${t.status}</span>
+                  </div>
+                </div>
+              `).join('')}
+              ${credits.length === 0 ? '<p>No earnings yet.</p>' : ''}
+            </div>
           </div>
         </div>
-      ` : ''}
-    </div>
-  `;
+    `;
+
+    // Initialize Chart
+    setTimeout(() => initializeEarningsChart(transactions), 100);
+
+  } catch (err) {
+    console.error("Earnings Load Error:", err);
+    container.innerHTML = `
+        <div class="error-state">
+            <i class="fas fa-exclamation-circle" style="font-size: 2.5rem; color: var(--error);"></i>
+            <h3>Failed to load earnings</h3>
+            <p>Please try again later. Error: ${err.message}</p>
+            <button class="btn btn-secondary" onclick="fetchAndRenderEarningsPage()">Retry</button>
+        </div>
+    `;
+  }
+}
+
+function getEarningsPage() {
+  return '<div id="earnings-placeholder"></div>';
 }
 
 // ============================================
 // WALLET PAGE
 // ============================================
 
+
+// ============================================
+// WALLET PAGE
+// ============================================
+
+async function fetchAndRenderWalletPage() {
+  const container = document.getElementById('wallet-page-container'); // You'll need to wrap content in this ID or similar
+  // Actually, worker-dashboard.js likely sets innerHTML of 'main-content'. 
+  // We should probably return a skeleton and then fetch data or make this function render to the main content.
+  // However, the current structure expects 'getWalletPage' to return a string. 
+  // We will change it to return a loading state and then trigger a fetch.
+
+  setTimeout(async () => { // Defer execution to let the loading state render
+    const user = Storage.get('karyasetu_user');
+    if (!user) return;
+
+    try {
+      const transactions = await API.transactions.getByUser(user.uid);
+      renderWalletContent(transactions);
+    } catch (err) {
+      console.error("Failed to load wallet:", err);
+      document.getElementById('wallet-content').innerHTML = `<div class="error-state"><p>Failed to load wallet data.</p></div>`;
+    }
+  }, 100);
+
+  return `
+    <div id="wallet-content">
+        <div class="page-header">
+           <h1 class="page-title"><i class="fas fa-credit-card" style="color:var(--primary-400);"></i> Wallet</h1>
+        </div>
+        <div style="text-align:center; padding: 3rem;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i> Loading...
+        </div>
+    </div>`;
+}
+
+// We need to keep the function name for compatibility if possible, or change how it's called.
+// existing 'getWalletPage' is synchronous returning HTML.
+// Let's modify it to return the skeleton and trigger the async fetch.
+
 function getWalletPage() {
-  const earnings = Storage.get('worker_earnings');
+  const user = Storage.get('karyasetu_user');
+
+  // Trigger async fetch
+  fetchWalletData(user.uid);
+
+  return `
+    <div id="wallet-page-root">
+        <div class="page-header">
+             <h1 class="page-title"><i class="fas fa-credit-card" style="color:var(--primary-400);"></i> Wallet</h1>
+             <p class="page-subtitle">Manage your earnings and withdrawals</p>
+        </div>
+        
+        <div id="wallet-loading" style="text-align:center; padding: 4rem;">
+             <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary-400);"></i>
+             <p style="margin-top: 1rem; color: var(--text-tertiary);">Loading your wallet...</p>
+        </div>
+        
+        <div id="wallet-data-container" style="display:none;"></div>
+    </div>
+   `;
+}
+
+async function fetchWalletData(userId) {
+  try {
+    // 1. Fetch real wallet balance
+    const balData = await API.payments.getBalance(userId);
+    let balance = 0;
+    if (balData.success) balance = balData.balance;
+
+    // 2. Fetch transaction history
+    const transactions = await API.transactions.getByUser(userId);
+
+    renderWalletUI(transactions, balance);
+  } catch (error) {
+    console.error("Wallet Fetch Error:", error);
+    const el = document.getElementById('wallet-loading');
+    if (el) el.innerHTML = `<p style="color: var(--error)">Failed to load wallet data. Please try again.</p>`;
+  }
+}
+
+// ============================================
+// REFERRALS PAGE (GENERAL)
+// ============================================
+
+function getReferralsPage() {
+  const user = Storage.get('karyasetu_user');
 
   return `
     <div class="page-header">
-      <h1 class="page-title"><i class="fas fa-credit-card" style="color:var(--primary-400);"></i> Wallet</h1>
-      <p class="page-subtitle">Manage your earnings and withdrawals</p>
+      <h1 class="page-title"><i class="fas fa-user-friends" style="color:var(--success);"></i> Refer & Earn</h1>
+      <p class="page-subtitle">Invite your co-workers to KaryaSetu and earn ₹100 for each successful signup!</p>
     </div>
     
-    <div class="wallet-container">
-      <!-- Balance Card -->
-      <div class="card wallet-balance-card" style="position:relative; overflow:hidden; padding: 2.5rem; background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));">
-        <!-- Realistic CSS Card -->
-        <div style="margin-bottom: var(--spacing-xl); display: flex; justify-content: center; perspective: 1000px;">
-            <div style="width: 340px; height: 210px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 20px; padding: 2rem; color: #fff; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; transform: rotateX(5deg); transition: transform 0.5s;">
-                <!-- Card Glow Effect -->
-                <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%); pointer-events: none;"></div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
-                    <div style="display: flex; flex-direction: column;">
-                        <span style="font-size: 0.6rem; letter-spacing: 2px; color: rgba(255,255,255,0.5);">KARYASETU PRO</span>
-                        <div style="width: 50px; height: 38px; background: linear-gradient(135deg, #fbbf24, #d97706); border-radius: 6px; margin-top: 10px; position: relative; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);">
-                            <div style="position: absolute; top: 10%; left: 10%; width: 80%; height: 2px; background: rgba(0,0,0,0.1);"></div>
-                            <div style="position: absolute; top: 30%; left: 10%; width: 80%; height: 2px; background: rgba(0,0,0,0.1);"></div>
-                            <div style="position: absolute; top: 50%; left: 10%; width: 80%; height: 2px; background: rgba(0,0,0,0.1);"></div>
-                        </div>
-                    </div>
-                    <i class="fab fa-cc-mastercard" style="font-size: 2.5rem; color: rgba(255,255,255,0.8);"></i>
-                </div>
-                
-                <p style="font-size: 1.4rem; font-family: 'Courier New', monospace; letter-spacing: 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); margin-bottom: 1.5rem;">•••• •••• •••• ${Math.floor(1000 + Math.random() * 9000)}</p>
-                
-                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div>
-                        <p style="font-size: 0.6rem; color: rgba(255,255,255,0.5); letter-spacing: 1px;">WORKER</p>
-                        <p style="font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">${Storage.get('userData')?.name || 'WORKER NAME'}</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <p style="font-size: 0.6rem; color: rgba(255,255,255,0.5); letter-spacing: 1px;">VALID THRU</p>
-                        <p style="font-weight: 600; font-size: 0.9rem;">12/28</p>
-                    </div>
-                </div>
+    <div class="referrals-container">
+      <div class="card" style="background: linear-gradient(135deg, rgba(74, 222, 128, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%); border: 1px solid rgba(255, 255, 255, 0.1);">
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; padding: 1rem;">
+          <div style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎁</div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">Give ₹50, Get ₹100</h2>
+            <p style="color: rgba(255,255,255,0.7);">Your friend gets ₹50 on their first job, and you get ₹100!</p>
+          </div>
+          
+          <div class="referral-box" style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);">
+            <label style="display: block; font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Your Referral Code</label>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <input type="text" value="${user?.uid?.substring(0, 8).toUpperCase() || 'KSETU100'}" readonly style="flex: 1; background: none; border: none; color: #fff; font-size: 1.5rem; font-weight: 700; letter-spacing: 2px;">
+              <button class="btn btn-primary" onclick="copyReferralCode(this)">Copy</button>
             </div>
-        </div>
-        <div class="balance-header" style="text-align: center;">
-          <h2 style="font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 2px; color: var(--text-tertiary); margin-bottom: var(--spacing-xs);">Available Balance</h2>
-          <span class="balance-amount" style="font-size: var(--font-size-5xl); font-weight: 800; color: var(--text-primary);">₹${earnings.month.toLocaleString()}</span>
-        </div>
-        <div class="balance-actions">
-          <button class="btn btn-primary btn-lg" onclick="initiateWithdrawal()">
-            <span>Withdraw Money</span>
-          </button>
-          <button class="btn btn-secondary btn-lg" onclick="showToast('Transaction history feature coming soon!', 'info')">
-            <span>View History</span>
-          </button>
+          </div>
+          
+          <div class="invite-form">
+            <h3 style="margin-bottom: 1rem;">Send an Invitation</h3>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="email" id="inviteEmail" class="form-control" placeholder="Enter colleague's email" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.8rem; border-radius: 8px; flex: 1;">
+              <button class="btn btn-primary" onclick="submitReferral()">Send Invite</button>
+            </div>
+          </div>
         </div>
       </div>
       
-      <!-- Withdrawal Methods -->
-      <div class="card">
+      <div class="card" style="margin-top: 2rem;">
         <div class="card-header">
-          <h2>Withdrawal Methods</h2>
-          <button class="btn-text" onclick="addPaymentMethod()">+ Add New</button>
+          <h2>Your Referral History</h2>
         </div>
-        <div class="payment-methods">
-          <div class="payment-method-item">
-            <div class="payment-method-icon"><i class="fas fa-university"></i></div>
-            <div class="payment-method-info">
-              <h4>Bank Account</h4>
-              <p>HDFC Bank •••• 4567</p>
-            </div>
-            <span class="badge badge-primary">Primary</span>
-          </div>
-          <div class="payment-method-item">
-            <div class="payment-method-icon"><i class="fas fa-mobile-alt"></i></div>
-            <div class="payment-method-info">
-              <h4>UPI</h4>
-              <p>9876543210@paytm</p>
-            </div>
-            <button class="btn btn-sm btn-ghost">Set as Primary</button>
+        <div id="referralsList" class="referrals-history">
+          <div style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">
+            <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 1rem;"></i>
+            <p>Loading referral history...</p>
           </div>
         </div>
-      </div>
-      
-      <!-- Recent Withdrawals -->
-      <div class="card">
-        <div class="card-header">
-          <h2>Recent Withdrawals</h2>
-        </div>
-        <div class="withdrawals-list">
-          <div class="withdrawal-item">
-            <div class="withdrawal-info">
-              <h4>Withdrawal to Bank</h4>
-              <span class="withdrawal-date">${formatDate(new Date(Date.now() - 172800000))}</span>
-            </div>
-            <div class="withdrawal-amount">
-              <span class="amount-value">-₹5,000</span>
-              <span class="badge badge-success">Completed</span>
-            </div>
-          </div>
-          <div class="withdrawal-item">
-            <div class="withdrawal-info">
-              <h4>Withdrawal to UPI</h4>
-              <span class="withdrawal-date">${formatDate(new Date(Date.now() - 604800000))}</span>
-            </div>
-            <div class="withdrawal-amount">
-              <span class="amount-value">-₹3,500</span>
-              <span class="badge badge-success">Completed</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Withdrawal Info -->
-      <div class="card info-card">
-        <h3><i class="fas fa-lightbulb" style="color:var(--warning);"></i> Withdrawal Information</h3>
-        <ul class="info-list">
-          <li>Minimum withdrawal amount: ₹500</li>
-          <li>Processing time: 1-2 business days</li>
-          <li>No withdrawal fees for bank transfers</li>
-          <li>Instant withdrawals available for UPI (₹10 fee)</li>
-        </ul>
       </div>
     </div>
   `;
+}
+
+async function submitReferral() {
+  const emailInput = document.getElementById('inviteEmail');
+  const email = emailInput?.value;
+  if (!email) return showToast('Please enter an email address', 'error');
+
+  const user = Storage.get('karyasetu_user');
+  try {
+    await API.referrals.create({
+      referrerId: user.uid,
+      inviteeEmail: email,
+      status: 'pending'
+    });
+    showToast('Invitation sent successfully!', 'success');
+    emailInput.value = '';
+    loadReferralsHistory(user.uid);
+  } catch (err) {
+    showToast('Failed to send invite: ' + err.message, 'error');
+  }
+}
+
+async function loadReferralsHistory(userId) {
+  const listContainer = document.getElementById('referralsList');
+  if (!listContainer) return;
+
+  try {
+    const referrals = await API.referrals.getHistory(userId);
+    if (referrals.length === 0) {
+      listContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color:rgba(255,255,255,0.5);">No referrals yet. Spread the word!</p>';
+      return;
+    }
+
+    listContainer.innerHTML = referrals.map(ref => `
+            <div class="earning-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div class="earning-info">
+                    <h4 style="margin: 0;">${ref.inviteeEmail}</h4>
+                    <span class="earning-date" style="font-size: 0.8rem; color: rgba(255,255,255,0.5);">${new Date(ref.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div class="earning-amount">
+                    <span class="badge ${ref.status === 'completed' ? 'badge-success' : 'badge-warning'}">${ref.status}</span>
+                </div>
+            </div>
+        `).join('');
+  } catch (err) {
+    listContainer.innerHTML = '<p class="error">Failed to load history.</p>';
+  }
+}
+
+window.copyReferralCode = function (btn) {
+  const input = btn.previousElementSibling;
+  input.select();
+  document.execCommand('copy');
+  const originalText = btn.textContent;
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = originalText, 2000);
+}
+
+function renderWalletUI(transactions, balance) {
+  const container = document.getElementById('wallet-data-container');
+  const loading = document.getElementById('wallet-loading');
+  if (!container) return;
+
+  if (loading) loading.style.display = 'none';
+  container.style.display = 'block';
+
+  const user = Storage.get('karyasetu_user') || {};
+
+  container.innerHTML = `
+    <div class="wallet-container">
+      <!-- Balance Card -->
+      <div class="card wallet-balance-card" style="padding: 2rem; text-align: center; background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary)); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="balance-header">
+          <h2 style="font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 2px; color: var(--text-tertiary); margin-bottom: var(--spacing-xs);">Available Balance</h2>
+          <span class="balance-amount" style="font-size: var(--font-size-5xl); font-weight: 800; color: var(--primary-400);">₹${balance.toLocaleString()}</span>
+        </div>
+        <div class="balance-actions" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+          <button class="btn btn-primary" onclick="showToast('Withdrawal initiated', 'success')">
+            <span>Withdraw Money</span>
+          </button>
+          <a href="../wallet/add-money-demo.html" class="btn btn-secondary" style="text-decoration:none;">
+            <span>Demo Top-up</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Transactions History -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Transaction History</h2>
+        </div>
+        <div class="withdrawals-list">
+          ${transactions.length === 0 ? '<p style="padding:1rem; color:var(--text-tertiary);">No transactions yet.</p>' : ''}
+          ${transactions.map(t => `
+          <div class="withdrawal-item">
+            <div class="withdrawal-info">
+              <h4>${t.description || t.source}</h4>
+              <span class="withdrawal-date">${new Date(t.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div class="withdrawal-amount">
+              <span class="amount-value" style="color: ${t.type === 'credit' ? 'var(--success)' : 'var(--error)'}">${t.type === 'credit' ? '+' : '-'}₹${t.amount}</span>
+              <span class="badge badge-success">${t.status}</span>
+            </div>
+          </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>`;
 }
 
 // ============================================
@@ -430,28 +589,28 @@ function getRatingsPage() {
           <div class="insight-item">
             <span class="insight-icon"><i class="fas fa-bullseye" style="color:var(--error);"></i></span>
             <div class="insight-content">
-              <span class="insight-value">96%</span>
+              <span class="insight-value">${dashboardData.performance.satisfaction}%</span>
               <span class="insight-label">Customer Satisfaction</span>
             </div>
           </div>
           <div class="insight-item">
             <span class="insight-icon"><i class="fas fa-bolt" style="color:#fbbf24;"></i></span>
             <div class="insight-content">
-              <span class="insight-value">98%</span>
+              <span class="insight-value">${dashboardData.performance.onTime}%</span>
               <span class="insight-label">On-Time Completion</span>
             </div>
           </div>
           <div class="insight-item">
             <span class="insight-icon"><i class="fas fa-comments" style="color:var(--info);"></i></span>
             <div class="insight-content">
-              <span class="insight-value">95%</span>
+              <span class="insight-value">${dashboardData.performance.responseRate}%</span>
               <span class="insight-label">Response Rate</span>
             </div>
           </div>
           <div class="insight-item">
             <span class="insight-icon"><i class="fas fa-sync" style="color:var(--success);"></i></span>
             <div class="insight-content">
-              <span class="insight-value">85%</span>
+              <span class="insight-value">${dashboardData.performance.repeatCustomers}%</span>
               <span class="insight-label">Repeat Customers</span>
             </div>
           </div>
@@ -465,7 +624,17 @@ function getRatingsPage() {
 // SUPPORT PAGE
 // ============================================
 
+
+// ============================================
+// SUPPORT PAGE
+// ============================================
+
 function getSupportPage() {
+  // We can fetch existing tickets if we want to show history, 
+  // currently the design only shows a form. 
+  // Let's add a "Your Tickets" section dynamically if we had time,
+  // but for now let's just make the form work.
+
   return `
     <div class="page-header">
       <h1 class="page-title"><i class="fas fa-life-ring" style="color:var(--error);"></i> Help & Support</h1>
@@ -480,65 +649,21 @@ function getSupportPage() {
           <p>Need immediate assistance? We're available 24/7</p>
         </div>
         <div class="emergency-actions">
-          <button class="btn btn-error btn-lg" onclick="callSupport()">
+          <button class="btn btn-error btn-lg" onclick="window.location.href='tel:18001234567'">
             <i class="fas fa-phone-alt"></i> Call Support: 1800-123-4567
           </button>
-          <button class="btn btn-secondary btn-lg" onclick="chatSupport()">
-            <i class="fas fa-comments"></i> Live Chat
-          </button>
-        </div>
-      </div>
-      
-      <!-- Quick Help -->
-      <div class="card">
-        <div class="card-header">
-          <h2>Quick Help Topics</h2>
-        </div>
-        <div class="help-topics">
-          <div class="help-topic" onclick="showHelpArticle('payment')">
-            <span class="topic-icon"><i class="fas fa-money-bill-wave"></i></span>
-            <div class="topic-content">
-              <h4>Payment Issues</h4>
-              <p>Withdrawal, earnings, and payment methods</p>
-            </div>
-            <span class="topic-arrow">→</span>
-          </div>
-          <div class="help-topic" onclick="showHelpArticle('jobs')">
-            <span class="topic-icon"><i class="fas fa-clipboard-list"></i></span>
-            <div class="topic-content">
-              <h4>Job Management</h4>
-              <p>Accepting, completing, and tracking jobs</p>
-            </div>
-            <span class="topic-arrow">→</span>
-          </div>
-          <div class="help-topic" onclick="showHelpArticle('account')">
-            <span class="topic-icon"><i class="fas fa-user-circle"></i></span>
-            <div class="topic-content">
-              <h4>Account Settings</h4>
-              <p>Profile, verification, and preferences</p>
-            </div>
-            <span class="topic-arrow">→</span>
-          </div>
-          <div class="help-topic" onclick="showHelpArticle('safety')">
-            <span class="topic-icon"><i class="fas fa-shield-alt"></i></span>
-            <div class="topic-content">
-              <h4>Safety & Security</h4>
-              <p>Guidelines and best practices</p>
-            </div>
-            <span class="topic-arrow">→</span>
-          </div>
         </div>
       </div>
       
       <!-- Contact Form -->
       <div class="card">
         <div class="card-header">
-          <h2>Send us a Message</h2>
+          <h2>Create Support Ticket</h2>
         </div>
-        <form class="support-form" onsubmit="submitSupportTicket(event)">
+        <form class="support-form" onsubmit="handleSupportSubmit(event)">
           <div class="input-group">
             <label class="input-label">Subject</label>
-            <select class="input-field" required>
+            <select id="ticketSubject" class="input-field" required>
               <option value="">Select a topic</option>
               <option>Payment Issue</option>
               <option>Job Dispute</option>
@@ -550,45 +675,77 @@ function getSupportPage() {
           
           <div class="input-group">
             <label class="input-label">Description</label>
-            <textarea class="input-field" rows="5" placeholder="Describe your issue in detail..." required></textarea>
-          </div>
-          
-          <div class="input-group">
-            <label class="input-label">Attach Screenshot (Optional)</label>
-            <input type="file" class="input-field" accept="image/*">
+            <textarea id="ticketDesc" class="input-field" rows="5" placeholder="Describe your issue in detail..." required></textarea>
           </div>
           
           <button type="submit" class="btn btn-primary">Submit Ticket</button>
         </form>
       </div>
-      
-      <!-- FAQ -->
-      <div class="card">
-        <div class="card-header">
-          <h2>Frequently Asked Questions</h2>
-        </div>
-        <div class="faq-list">
-          <details class="faq-item">
-            <summary>How do I withdraw my earnings?</summary>
-            <p>Go to Wallet → Click "Withdraw Money" → Select payment method → Enter amount → Confirm. Withdrawals are processed within 1-2 business days.</p>
-          </details>
-          <details class="faq-item">
-            <summary>What happens if I can't complete a job?</summary>
-            <p>Contact the customer immediately and report the issue through the app. Our support team will help resolve the situation.</p>
-          </details>
-          <details class="faq-item">
-            <summary>How can I improve my rating?</summary>
-            <p>Arrive on time, communicate clearly, complete jobs professionally, and follow up with customers. Quality work leads to better ratings!</p>
-          </details>
-          <details class="faq-item">
-            <summary>Can I change my service categories?</summary>
-            <p>Yes! Go to Profile → Edit → Update your skills. Changes will be reflected immediately.</p>
-          </details>
-        </div>
-      </div>
+
+       <!-- Tickets History (Optional, loading via separate call if needed) -->
+       <div class="card" id="tickets-history-card">
+           <div class="card-header"><h2>Your Tickets</h2></div>
+           <div id="tickets-list">Loading...</div>
+       </div>
     </div>
   `;
 }
+
+// Global handler for support form
+window.handleSupportSubmit = async function (event) {
+  event.preventDefault();
+  const subject = document.getElementById('ticketSubject').value;
+  const description = document.getElementById('ticketDesc').value;
+  const user = Storage.get('karyasetu_user');
+
+  try {
+    await API.support.createTicket({
+      userId: user.uid,
+      subject,
+      description,
+      priority: 'normal'
+    });
+    showToast('Ticket created successfully!', 'success');
+    event.target.reset();
+    loadTicketsHistory(user.uid); // Refresh list
+  } catch (err) {
+    showToast('Failed to create ticket: ' + err.message, 'error');
+  }
+};
+
+async function loadTicketsHistory(userId) {
+  const container = document.getElementById('tickets-list');
+  if (!container) return;
+
+  try {
+    const tickets = await API.support.getUserTickets(userId);
+    if (tickets.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-tertiary)">No tickets found.</p>';
+      return;
+    }
+
+    container.innerHTML = tickets.map(t => `
+            <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:8px; margin-bottom:1rem;">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${t.subject}</strong>
+                    <span class="badge ${t.status === 'open' ? 'badge-warning' : 'badge-success'}">${t.status}</span>
+                </div>
+                <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); margin-top:0.5rem;">${t.description}</p>
+                <div style="font-size:0.8rem; color:rgba(255,255,255,0.4); margin-top:0.5rem;">
+                    ${new Date(t.createdAt).toLocaleDateString()}
+                </div>
+            </div>
+        `).join('');
+  } catch (err) {
+    container.innerHTML = '<p>Error loading tickets.</p>';
+  }
+}
+
+// Ensure loadTicketsHistory is called when page loads
+// We can hook into initializePage or just modify getSupportPage to trigger it
+// Since getSupportPage returns HTML string, we'll use a timeout hack or rely on `initializePage` loop if we add it there.
+// Let's add it to initializePage in Part 2.
+
 
 // ============================================
 // SETTINGS PAGE
@@ -675,6 +832,35 @@ function getSettingsPage() {
             </div>
             <label class="toggle-switch">
               <input type="checkbox" onchange="toggleNotification('promos', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tracking Settings -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Tracking & Movement</h2>
+        </div>
+        <div class="settings-list">
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Live Tracking</h4>
+              <p>Broadcast your location when you are online</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting_live_tracking" onchange="toggleLiveTracking(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Battery Saver Mode</h4>
+              <p>Reduce update frequency and accuracy to save power</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting_battery_saver" onchange="toggleBatterySaver(this.checked)">
               <span class="toggle-slider"></span>
             </label>
           </div>
@@ -946,7 +1132,35 @@ function changePassword() {
 }
 
 function toggleNotification(type, enabled) {
-  showToast(`${type} notifications ${enabled ? 'enabled' : 'disabled'}`, 'success');
+  showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} notifications ${enabled ? 'enabled' : 'disabled'}`, 'success');
+}
+
+function toggleLiveTracking(enabled) {
+  const user = Storage.get('karyasetu_user');
+  if (!user) return;
+
+  localStorage.setItem(`tracking_enabled_${user.uid}`, enabled);
+
+  if (enabled && availabilityStatus === 'online') {
+    window.locationTracker.start();
+  } else {
+    window.locationTracker.stop();
+  }
+
+  showToast(`Live tracking ${enabled ? 'enabled' : 'disabled'}`, 'info');
+}
+
+function toggleBatterySaver(enabled) {
+  localStorage.setItem('karyasetu_battery_saver', enabled);
+
+  // Force frequency update if tracking
+  if (window.locationTracker && window.locationTracker.isTracking) {
+    // Simple way: restart tracker with new settings
+    window.locationTracker.stop();
+    window.locationTracker.start();
+  }
+
+  showToast(`Battery saver ${enabled ? 'on' : 'off'}`, 'info');
 }
 
 function setup2FA() {
@@ -1380,17 +1594,32 @@ function initializePage(pageName, params) {
     // Also fetch jobs for the dashboard
     if (typeof fetchAndRenderJobRequests === 'function') fetchAndRenderJobRequests();
     if (typeof fetchAndRenderActiveJobs === 'function') fetchAndRenderActiveJobs();
+  } else if (pageName === 'job-history') {
+    if (typeof fetchAndRenderJobHistory === 'function') fetchAndRenderJobHistory();
+  } else if (pageName === 'support') {
+    const user = Storage.get('karyasetu_user');
+    if (user && typeof loadTicketsHistory === 'function') loadTicketsHistory(user.uid);
+  } else if (pageName === 'referrals') {
+    const user = Storage.get('karyasetu_user');
+    if (user && typeof loadReferralsHistory === 'function') loadReferralsHistory(user.uid);
   }
 
   // Initialize earnings chart if on earnings page
+  // fetchAndRenderEarningsPage handles chart init now
+  // if (pageName === 'earnings') {
+  //   setTimeout(initializeEarningsChart, 500);
+  // }
   const earningsCanvas = document.getElementById('earningsChart');
   if (earningsCanvas) {
     updateEarningsChart('week');
   }
 
-  // Add any page-specific initialization here
   if (pageName === 'availability') {
     // Initialize time pickers (already handled by HTML value)
+  }
+
+  if (pageName === 'earnings') {
+    if (typeof fetchAndRenderEarningsPage === 'function') fetchAndRenderEarningsPage();
   }
 }
 
@@ -1410,3 +1639,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('Worker Dashboard - Complete Implementation Loaded');
+
+// --- Page Initialization Logic ---
+function initializePage(pageName, params) {
+  if (pageName === 'settings') {
+    const user = Storage.get('karyasetu_user');
+    if (!user) return;
+
+    // Live Tracking Toggle
+    const trackingEnabled = localStorage.getItem(`tracking_enabled_${user.uid}`) !== 'false';
+    const trackingToggle = document.getElementById('setting_live_tracking');
+    if (trackingToggle) trackingToggle.checked = trackingEnabled;
+
+    // Battery Saver Toggle
+    const batterySaver = localStorage.getItem('karyasetu_battery_saver') === 'true';
+    const batteryToggle = document.getElementById('setting_battery_saver');
+    if (batteryToggle) batteryToggle.checked = batterySaver;
+  }
+}

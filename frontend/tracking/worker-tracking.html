@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Location | KaryaSetu</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(30, 32, 58, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1001;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            flex: 1;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #00ff88;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        #map {
+            flex: 1;
+            z-index: 1;
+        }
+
+        .status-card {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 32, 58, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-width: 320px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .route-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #00d2ff;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .status-active {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .status-inactive {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .gps-accuracy {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1>Share Your Location</h1>
+        <div class="toggle-container">
+            <span class="toggle-label" id="toggle-label">Off</span>
+            <div class="toggle-switch" id="location-toggle" onclick="toggleLocationSharing()"></div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="status-card">
+        <div class="route-info">
+            <div class="info-item">
+                <div class="info-value" id="distance">--</div>
+                <div class="info-label">Distance to Customer (km)</div>
+            </div>
+            <div class="info-item">
+                <div class="info-value" id="accuracy">--</div>
+                <div class="info-label">GPS Accuracy (m)</div>
+            </div>
+        </div>
+
+        <div class="status-message status-inactive" id="status-message">
+            Location sharing is OFF
+        </div>
+
+        <div class="gps-accuracy" id="last-update">
+            Tap toggle to start sharing
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script type="module">
+        import { auth, db } from '../config.js';
+
+        const API_URL = 'http://localhost:5000';
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('bookingId');
+
+        let map, workerMarker, customerMarker, routeLine;
+        let isSharing = false;
+        let watchId = null;
+        let workerPos = null;
+        let customerPos = null;
+
+        async function initMap() {
+            // Default center (will update with actual location)
+            map = L.map('map').setView([28.6139, 77.2090], 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Get customer location from booking
+            if (bookingId) {
+                fetchCustomerLocation();
+            }
+        }
+
+        async function fetchCustomerLocation() {
+            try {
+                const response = await fetch(`${API_URL}/api/location/${bookingId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data.customerLocation) {
+                        customerPos = data.data.customerLocation;
+
+                        const customerIcon = L.divIcon({
+                            html: '<div style="background:#00d2ff;width:35px;height:35px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🏠</div>',
+                            iconSize: [35, 35],
+                            className: ''
+                        });
+
+                        customerMarker = L.marker([customerPos.lat, customerPos.lng], { icon: customerIcon })
+                            .addTo(map)
+                            .bindPopup('<b>Customer Location</b>');
+
+                        updateDistance();
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch customer location:', error);
+            }
+        }
+
+        function toggleLocationSharing() {
+            isSharing = !isSharing;
+            const toggle = document.getElementById('location-toggle');
+            const label = document.getElementById('toggle-label');
+            const statusMsg = document.getElementById('status-message');
+
+            toggle.classList.toggle('active');
+            label.textContent = isSharing ? 'On' : 'Off';
+
+            if (isSharing) {
+                statusMsg.className = 'status-message status-active';
+                statusMsg.textContent = '✓ Sharing your location';
+                startLocationSharing();
+            } else {
+                statusMsg.className = 'status-message status-inactive';
+                statusMsg.textContent = 'Location sharing is OFF';
+                stopLocationSharing();
+            }
+        }
+
+        function startLocationSharing() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            };
+
+            watchId = navigator.geolocation.watchPosition(
+                updatePosition,
+                handleError,
+                options
+            );
+        }
+
+        function stopLocationSharing() {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        }
+
+        async function updatePosition(position) {
+            const { latitude, longitude, accuracy } = position.coords;
+
+            workerPos = { lat: latitude, lng: longitude };
+
+            // Update marker on map
+            const workerIcon = L.divIcon({
+                html: '<div style="background:#00ff88;width:35px;height:35px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">📍</div>',
+                iconSize: [35, 35],
+                className: ''
+            });
+
+            if (!workerMarker) {
+                workerMarker = L.marker([latitude, longitude], { icon: workerIcon })
+                    .addTo(map)
+                    .bindPopup('<b>Your Location</b>');
+                map.setView([latitude, longitude], 14);
+            } else {
+                workerMarker.setLatLng([latitude, longitude]);
+            }
+
+            // Update accuracy display
+            document.getElementById('accuracy').textContent = Math.round(accuracy);
+            document.getElementById('last-update').textContent =
+                'Last updated: ' + new Date().toLocaleTimeString();
+
+            // Send to backend
+            await sendLocationToBackend(latitude, longitude);
+
+            // Update route line
+            updateRouteLine();
+            updateDistance();
+        }
+
+        async function sendLocationToBackend(lat, lng) {
+            if (!bookingId) {
+                console.warn('No bookingId, skipping backend update');
+                return;
+            }
+
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    console.warn('User not logged in');
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/api/location/${bookingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: user.uid,
+                        userType: 'worker',
+                        latitude: lat,
+                        longitude: lng
+                    })
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to send location to backend');
+                }
+            } catch (error) {
+                console.error('Error sending location:', error);
+            }
+        }
+
+        function updateRouteLine() {
+            if (!workerPos || !customerPos) return;
+
+            if (routeLine) {
+                map.removeLayer(routeLine);
+            }
+
+            routeLine = L.polyline(
+                [[workerPos.lat, workerPos.lng], [customerPos.lat, customerPos.lng]],
+                {
+                    color: '#00d2ff',
+                    weight: 3,
+                    opacity: 0.7,
+                    dashArray: '10, 10'
+                }
+            ).addTo(map);
+
+            // Fit bounds to show both markers
+            const bounds = L.latLngBounds([
+                [workerPos.lat, workerPos.lng],
+                [customerPos.lat, customerPos.lng]
+            ]);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+
+        function updateDistance() {
+            if (!workerPos || !customerPos) return;
+
+            const distance = calculateDistance(
+                workerPos.lat, workerPos.lng,
+                customerPos.lat, customerPos.lng
+            );
+
+            document.getElementById('distance').textContent = distance.toFixed(2);
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function handleError(error) {
+            console.error('Geolocation error:', error);
+            let message = 'Unable to get location';
+
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Location permission denied';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Location information unavailable';
+                    break;
+                case error.TIMEOUT:
+                    message = 'Location request timed out';
+                    break;
+            }
+
+            document.getElementById('status-message').textContent = message;
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initMap);
+    </script>
+</body>
+
+</html>

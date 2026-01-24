@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Money - Demo Mode | KaryaSetu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .demo-badge {
+            background: #ff9800;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .wallet-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .balance-section {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            color: #fff;
+        }
+
+        .balance-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .amount-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0 1.5rem;
+        }
+
+        .amount-btn {
+            padding: 1.5rem;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+
+        .amount-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .amount-btn.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .custom-amount input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .pay-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+        }
+
+        .pay-btn:disabled {
+            opacity: 0.5;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="demo-badge">
+            🚀 DEMO MODE - No real payment needed
+        </div>
+
+        <div class="header">
+            <h1>💰 Add Money to Wallet</h1>
+            <p>Test wallet functionality (Demo Mode)</p>
+        </div>
+
+        <div class="wallet-card">
+            <div class="balance-section">
+                <div class="balance-label">Current Balance</div>
+                <div class="balance-amount" id="balance">₹0</div>
+            </div>
+
+            <h3>Select Amount</h3>
+            <div class="amount-grid">
+                <button class="amount-btn" onclick="selectAmount(100)">₹100</button>
+                <button class="amount-btn" onclick="selectAmount(500)">₹500</button>
+                <button class="amount-btn" onclick="selectAmount(1000)">₹1000</button>
+                <button class="amount-btn" onclick="selectAmount(2000)">₹2000</button>
+                <button class="amount-btn" onclick="selectAmount(5000)">₹5000</button>
+                <button class="amount-btn" onclick="selectAmount(10000)">₹10000</button>
+            </div>
+
+            <div class="custom-amount">
+                <input type="number" id="custom-amount" placeholder="Or enter custom amount" min="10">
+            </div>
+
+            <button class="pay-btn" id="pay-btn" onclick="simulatePayment()" disabled>
+                Add Money (Demo)
+            </button>
+
+            <div class="alert success" id="alert"></div>
+
+            <div class="info-box">
+                <strong>📝 Demo Mode Active</strong><br>
+                This is a demonstration. Money is added instantly without real payment.<br><br>
+                <strong>To enable real payments:</strong><br>
+                1. Get Razorpay API keys from https://razorpay.com<br>
+                2. Add keys to backend/.env<br>
+                3. Use add-money.html instead
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let balance = parseInt(localStorage.getItem('demo_wallet_balance') || '0');
+        let selectedAmount = 0;
+
+        // Display current balance
+        document.getElementById('balance').textContent = `₹${balance}`;
+
+        function selectAmount(amount) {
+            selectedAmount = amount;
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            document.getElementById('custom-amount').value = '';
+            document.getElementById('pay-btn').disabled = false;
+        }
+
+        document.getElementById('custom-amount').addEventListener('input', function () {
+            selectedAmount = parseInt(this.value) || 0;
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById('pay-btn').disabled = selectedAmount < 10;
+        });
+
+        function simulatePayment() {
+            if (selectedAmount < 10) {
+                return;
+            }
+
+            // Simulate payment processing
+            document.getElementById('pay-btn').textContent = 'Processing...';
+            document.getElementById('pay-btn').disabled = true;
+
+            setTimeout(() => {
+                // Add money to balance
+                balance += selectedAmount;
+                localStorage.setItem('demo_wallet_balance', balance.toString());
+
+                // Update UI
+                document.getElementById('balance').textContent = `₹${balance}`;
+
+                // Show success message
+                const alert = document.getElementById('alert');
+                alert.textContent = `✅ Successfully added ₹${selectedAmount} to wallet!`;
+                alert.style.display = 'block';
+
+                // Reset
+                selectedAmount = 0;
+                document.querySelectorAll('.amount-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                document.getElementById('custom-amount').value = '';
+                document.getElementById('pay-btn').textContent = 'Add Money (Demo)';
+                document.getElementById('pay-btn').disabled = true;
+
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 3000);
+            }, 1500);
+        }
+
+        // Reset balance button (hidden - press R key)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                if (confirm('Reset demo wallet balance to ₹0?')) {
+                    balance = 0;
+                    localStorage.setItem('demo_wallet_balance', '0');
+                    document.getElementById('balance').textContent = '₹0';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
