@@ -1638,7 +1638,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-console.log('Worker Dashboard - Complete Implementation Loaded');
+
 
 // --- Page Initialization Logic ---
 function initializePage(pageName, params) {

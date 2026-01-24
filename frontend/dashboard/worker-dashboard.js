@@ -56,7 +56,7 @@ if (userData) { // Changed from `user` to `userData` to match existing variable
     });
 
     if (skillsChanged) {
-      console.log('Use Repair: Capitalizing skills for visibility...', fixedSkills);
+
       profile.skills = fixedSkills;
       Storage.set('karyasetu_user_profile', profile); // Save locally
 

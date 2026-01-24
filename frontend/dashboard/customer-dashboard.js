@@ -16,7 +16,7 @@ const getAll = (sel) => document.querySelectorAll(sel);
 
 // --- Initialization ---
 function init() {
-    console.log('Initializing Dashboard...');
+
 
     const userData = Storage.get(STORAGE_KEYS.USER);
     if (!userData || !userData.loggedIn) {
@@ -26,7 +26,7 @@ function init() {
 
     // MIGRATION: Clear old mock bookings to avoid "nothing changed" confusion
     if (!Storage.get('karyasetu_v2_migration')) {
-        console.log('Migrating to Dynamic Data... Clearing legacy mocks.');
+
         Storage.remove(STORAGE_KEYS.BOOKINGS);
         Storage.set('karyasetu_v2_migration', 'done');
     }
@@ -97,9 +97,9 @@ function setupEventListeners() {
 
     const aiSendBtn = getEl('ai-popup-send');
     if (aiSendBtn) {
-        console.log('Attaching Chat Send Listener');
+
         aiSendBtn.addEventListener('click', (e) => {
-            console.log('Send Button Clicked');
+
             e.preventDefault();
             handleAIMessage();
         });
