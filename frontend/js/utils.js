@@ -5,7 +5,13 @@ const Storage = {
     get(key) {
         try {
             const item = sessionStorage.getItem(key);
-            return item ? JSON.parse(item) : null;
+            if (!item) return null;
+            try {
+                return JSON.parse(item);
+            } catch (jsonError) {
+                // If it's not JSON, return the raw value (handles simple strings like "worker")
+                return item;
+            }
         } catch (e) {
             console.error('Error reading from sessionStorage:', e);
             return null;

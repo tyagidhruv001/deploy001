@@ -1633,7 +1633,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Update request count badge
   const jobs = Storage.get('worker_jobs');
   const requestCountBadge = document.getElementById('requestCount');
-  if (requestCountBadge) {
+  if (requestCountBadge && jobs && jobs.pending) {
     requestCountBadge.textContent = jobs.pending.length;
   }
 });

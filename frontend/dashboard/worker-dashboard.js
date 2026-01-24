@@ -9,6 +9,7 @@
 const userData = Storage.get('karyasetu_user');
 const userProfile = Storage.get('karyasetu_user_profile');
 const userRole = Storage.get('karyasetu_user_role');
+const contentArea = document.getElementById('contentArea');
 
 if (!userData || !userData.loggedIn) {
   window.location.href = '../auth/login.html';
@@ -242,7 +243,7 @@ setInterval(refreshDashboardData, 30000); // Auto-refresh every 30s
 // AVAILABILITY MANAGEMENT
 // ============================================
 
-let availabilityData = Storage.get('worker_availability');
+let availabilityData = Storage.get('worker_availability') || { isOnline: false };
 let isAvailable = availabilityData.isOnline;
 
 const statusDot = document.getElementById('statusDot');
@@ -323,7 +324,6 @@ document.addEventListener('click', (e) => {
 });
 
 const navLinks = document.querySelectorAll('.nav-link[data-page]');
-const contentArea = document.getElementById('contentArea');
 
 navLinks.forEach(link => {
   link.addEventListener('click', (e) => {
