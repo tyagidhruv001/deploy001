@@ -1,5 +1,6 @@
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+
+const API_BASE_URL = 'https://deploy001-7bj.pages.dev//api';
+
 
 const API = {
     // Auth endpoints

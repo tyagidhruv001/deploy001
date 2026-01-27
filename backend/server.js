@@ -8,9 +8,18 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+
+
 app.use(express.json({ limit: '50mb' })); // Increased limit for base64 images
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(cors({
+    origin: '*', // Allow all origins (update this to specific domains in production)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+
 
 // Basic Route
 app.get('/', (req, res) => {
