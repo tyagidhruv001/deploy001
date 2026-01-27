@@ -93,14 +93,35 @@ async function seedWorkers() {
         console.log('Starting seed process...');
         const batch = db.batch();
 
-        for (const worker of sampleWorkers) {
-            const docRef = db.collection('users').doc(worker.uid);
-            batch.set(docRef, worker, { merge: true }); // Use merge to avoid overwriting auth-related fields if they existed (though here we control IDs)
-            console.log(`Prepared seed for: ${worker.name}`);
-        }
+        sampleWorkers.forEach((worker, index) => {
+            // 1. Seed User Identity
+            const userRef = db.collection('users').doc(worker.uid);
+            batch.set(userRef, worker, { merge: true });
+
+            // 2. Seed Worker Discovery Data
+            const discoveryData = {
+                uid: worker.uid,
+                name: worker.name,
+                category: (worker.profile.skills[0] || 'General').toLowerCase(),
+                is_online: true, // Set workers as online
+                rating_avg: worker.karyasetu_rating,
+                experience_years: worker.profile.experience === 'expert' ? 10 : 5,
+                base_price: worker.profile.hourlyRate || 350,
+                phone: '+91' + (9000000000 + index), // Generate phone numbers
+                location: {
+                    lat: 19.0760 + (index * 0.01), // Spread them out slightly in Mumbai
+                    lng: 72.8777 + (index * 0.01)
+                },
+                updated_at: new Date().toISOString()
+            };
+            const workerRef = db.collection('workers').doc(worker.uid);
+            batch.set(workerRef, discoveryData, { merge: true });
+
+            console.log(`Prepared dual-seed for: ${worker.name}`);
+        });
 
         await batch.commit();
-        console.log('Successfully seeded workers into Firestore collection "users".');
+        console.log('Successfully seeded workers into "users" and "workers" collections.');
         process.exit(0);
     } catch (error) {
         console.error('Error seeding workers:', error);

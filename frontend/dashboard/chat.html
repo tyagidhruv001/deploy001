@@ -215,7 +215,7 @@
         document.getElementById('chat-worker-name').textContent = otherPartyName;
         document.getElementById('chat-avatar').textContent = otherPartyName.substring(0, 2).toUpperCase();
 
-        const currentUser = Storage.get('karyasetu_user');
+        const currentUser = JSON.parse(localStorage.getItem('karyasetu_user') || 'null');
         if (!currentUser) {
             // alert('Please login');
             // window.location.href = '../auth/login.html';

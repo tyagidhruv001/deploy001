@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Test | KaryaSetu</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at center, #1a1b2e 0%, #0f0f0f 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+
+        .chat-header {
+            background: rgba(30, 32, 58, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chat-container {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s;
+            word-wrap: break-word;
+        }
+
+        .msg-user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: #fff;
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
+        }
+
+        .msg-ai {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom-left-radius: 2px;
+            color: #e0e0e0;
+        }
+
+        .msg-time {
+            font-size: 0.7rem;
+            margin-top: 0.4rem;
+            opacity: 0.7;
+            display: block;
+        }
+
+        .chat-footer {
+            padding: 1.5rem;
+            background: rgba(30, 32, 58, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 0.8rem 1.5rem;
+            color: #fff;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .chat-input:focus {
+            border-color: var(--neon-blue);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .send-btn {
+            background: var(--neon-green);
+            color: #000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 1.2rem;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .send-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            opacity: 0.7;
+            padding: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.3rem;
+            padding: 1rem;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--neon-blue);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-header">
+        <h1>🤖 AI Platform Assistant - Test Chat</h1>
+        <p style="margin: 0.5rem 0 0; opacity: 0.7; font-size: 0.9rem;">Ask me anything about KaryaSetu!</p>
+    </div>
+
+    <div class="chat-container" id="chat-history">
+        <div class="msg-ai message">
+            <div>Hello! I am the KaryaSetu Platform Assistant. How can I help you today?</div>
+            <span class="msg-time">Just now</span>
+        </div>
+    </div>
+
+    <div class="chat-footer">
+        <div class="input-area">
+            <input type="text" class="chat-input" id="message-input" placeholder="Type your message here...">
+            <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_URL = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+
+        // Conversation history for context
+        let conversationHistory = [
+            {
+                role: "user",
+                parts: [{
+                    text: `You are the KaryaSetu Platform Assistant. 
+                    Your goal is to help customers use the platform, find workers, and manage their bookings.
+                    
+                    Platform Features:
+                    - Booking services (Plumbing, Cleaning, Electrical, etc.)
+                    - Tracking active jobs in real-time
+                    - Wallet management (view balance, add money)
+                    - Viewing nearby verified workers on a map
+                    
+                    Be friendly, professional, and concise. Do not use markdown.
+                    If asked about specific workers, guide them to the 'Nearby Workers' tab.
+                    If asked about booking, guide them to the 'Book Service' tab.`
+                }]
+            },
+            {
+                role: "model",
+                parts: [{ text: "Hello! I am the KaryaSetu Platform Assistant. How can I help you today?" }]
+            }
+        ];
+
+        function appendMessage(type, content) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message msg-${type}`;
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            msgDiv.innerHTML = `
+                <div>${content}</div>
+                <span class="msg-time">${time}</span>
+            `;
+            chatHistory.appendChild(msgDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'message msg-ai typing-indicator';
+            indicator.id = 'typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            chatHistory.appendChild(indicator);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            // Add user message
+            appendMessage('user', text);
+            messageInput.value = '';
+            sendBtn.disabled = true;
+
+            // Add to conversation history
+            conversationHistory.push({
+                role: "user",
+                parts: [{ text }]
+            });
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                const response = await fetch(`${API_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: text,
+                        previousHistory: conversationHistory,
+                        workerContext: {
+                            type: 'platform_assistant'
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                hideTypingIndicator();
+
+                if (data.reply) {
+                    appendMessage('ai', data.reply);
+
+                    // Add AI response to history
+                    conversationHistory.push({
+                        role: "model",
+                        parts: [{ text: data.reply }]
+                    });
+                } else {
+                    throw new Error('No reply from AI');
+                }
+
+            } catch (error) {
+                hideTypingIndicator();
+                console.error('Chat error:', error);
+                appendMessage('ai', `⚠️ Error: ${error.message}. Please check if the backend server is running on port 5000.`);
+            } finally {
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Enter key to send
+        messageInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !sendBtn.disabled) {
+                sendMessage();
+            }
+        });
+
+        // Focus input on load
+        window.addEventListener('load', () => {
+            messageInput.focus();
+        });
+    </script>
+</body>
+
+</html>

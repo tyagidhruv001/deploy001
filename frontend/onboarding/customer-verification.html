@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Verification - KaryaSetu</title>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="onboarding.css">
+    <link rel="stylesheet" href="../css/verification.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .optional-badge {
+            background: #edf2f7;
+            color: #718096;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .skip-btn {
+            background: transparent;
+            border: 2px solid #cbd5e0;
+            color: #718096;
+            margin-top: 1rem;
+        }
+
+        .skip-btn:hover {
+            border-color: #a0aec0;
+            color: #4a5568;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="onboarding-container gradient-mesh">
+        <div class="onboarding-card card-glass" style="max-width: 800px;">
+            <div class="onboarding-header">
+                <div class="logo">
+                    <span class="logo-icon">🔧</span>
+                    <span class="logo-text">KaryaSetu</span>
+                </div>
+                <h1>Complete Your Profile</h1>
+                <p>Tell us about yourself and optionally verify your identity</p>
+            </div>
+
+            <!-- Basic Info Form -->
+            <form class="onboarding-form" id="customerBasicInfoForm">
+                <div class="input-group">
+                    <label class="input-label">Location</label>
+                    <input type="text" class="input-field" id="location" placeholder="Enter your city" required>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Address</label>
+                    <textarea class="input-field" id="address" rows="3" placeholder="Enter your full address"
+                        required></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Pincode</label>
+                    <input type="text" class="input-field" id="pincode" placeholder="Enter pincode" pattern="[0-9]{6}"
+                        required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg">
+                    Continue <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Optional Verification Section -->
+            <div id="verificationSection" style="display: none; margin-top: 2rem;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 style="color: #2d3748;">
+                        <i class="fas fa-shield-alt"></i> Verify Your Identity
+                        <span class="optional-badge">OPTIONAL</span>
+                    </h3>
+                    <p style="color: #718096; font-size: 0.9rem;">
+                        Verified customers get priority booking and better trust from workers
+                    </p>
+                </div>
+
+                <div class="document-type-selector">
+                    <label for="documentType">Select Document Type</label>
+                    <select id="documentType">
+                        <option value="">-- Choose Document Type --</option>
+                        <option value="aadhaar">Aadhaar Card</option>
+                        <option value="pan">PAN Card</option>
+                        <option value="driving_license">Driving License</option>
+                        <option value="voter_id">Voter ID</option>
+                        <option value="passport">Passport</option>
+                    </select>
+                </div>
+
+                <div class="upload-area" id="uploadArea" style="padding: 2rem 1rem;">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drag & Drop your document here</h3>
+                    <p>or click to browse</p>
+                    <p class="file-types">Supported: JPG, PNG (max 5MB)</p>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+
+                <div class="preview-area" id="previewArea">
+                    <div class="preview-image-container">
+                        <img id="previewImage" class="preview-image" alt="Document preview">
+                        <button class="remove-image-btn" id="removeImageBtn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <button class="verify-btn" id="verifyBtn">
+                        <i class="fas fa-check-circle"></i> Verify Document
+                    </button>
+                </div>
+
+                <div class="results-area" id="resultsArea"></div>
+
+                <button class="btn btn-secondary btn-lg skip-btn" id="skipVerification">
+                    Skip Verification - Continue to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>Verifying Document...</h3>
+            <p>Our AI is analyzing your document. This may take a few moments.</p>
+        </div>
+    </div>
+
+    <script type="module" src="customer-verification.js"></script>
+</body>
+
+</html>

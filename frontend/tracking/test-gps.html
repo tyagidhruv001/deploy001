@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Test Setup | KaryaSetu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1b2e 0%, #0f0f0f 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00d2ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .role-card {
+            background: rgba(30, 32, 58, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .role-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 210, 255, 0.5);
+        }
+
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .role-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #00d2ff;
+        }
+
+        .role-card p {
+            opacity: 0.8;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00d2ff, #a855f7);
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(0, 210, 255, 0.3);
+        }
+
+        .booking-id-section {
+            background: rgba(30, 32, 58, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .booking-id-section h3 {
+            color: #00ff88;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .id-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+
+        .copy-btn {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .copy-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+        }
+
+        .instructions {
+            background: rgba(30, 32, 58, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .instructions h3 {
+            color: #a855f7;
+            margin-bottom: 1rem;
+        }
+
+        .step {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #00d2ff, #a855f7);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .alert {
+            background: rgba(255, 206, 0, 0.2);
+            border: 1px solid rgba(255, 206, 0, 0.5);
+            color: #ffce00;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ GPS Tracking Test</h1>
+            <p>Test live map tracking with your friend using real GPS</p>
+        </div>
+
+        <div class="booking-id-section">
+            <h3>📋 Your Unique Test ID</h3>
+            <div class="id-display" id="booking-id">Loading...</div>
+            <button class="copy-btn" onclick="copyBookingId()">
+                <i class="fas fa-copy"></i> Copy Test ID
+            </button>
+            <div class="alert">
+                <i class="fas fa-info-circle"></i>
+                Share this ID with your friend so you're both tracking the same session!
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <div class="role-card">
+                <div class="icon">👤</div>
+                <h2>Customer (You)</h2>
+                <p>Track your friend's location in real-time. You'll see where they are and how far away they are from
+                    you.</p>
+                <button class="btn" onclick="openCustomerView()">
+                    <i class="fas fa-map-marked-alt"></i> Track Friend
+                </button>
+            </div>
+
+            <div class="role-card">
+                <div class="icon">📱</div>
+                <h2>Worker (Your Friend)</h2>
+                <p>Share your GPS location. Your friend will see you moving on their map in real-time.</p>
+                <button class="btn" onclick="openWorkerView()">
+                    <i class="fas fa-location-arrow"></i> Share Location
+                </button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📖 How to Test</h3>
+
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>Generate Test ID</strong><br>
+                    A unique test ID has been created above. Copy it.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>Choose Roles</strong><br>
+                    You click "Track Friend" (Customer)<br>
+                    Your friend clicks "Share Location" (Worker)
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>Allow GPS Permission</strong><br>
+                    Both of you need to allow browser location access when prompted.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>Watch the Magic!</strong><br>
+                    Your friend toggles "Share Location" ON, and you'll see them on your map in real-time! 🎉
+                </div>
+            </div>
+
+            <div class="alert">
+                <i class="fas fa-mobile-alt"></i>
+                Works best on mobile devices with GPS! Both can open on phones.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate unique booking ID
+        const bookingId = 'live-test-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        document.getElementById('booking-id').textContent = bookingId;
+
+        function copyBookingId() {
+            navigator.clipboard.writeText(bookingId).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy"></i> Copy Test ID';
+                }, 2000);
+            });
+        }
+
+        function openCustomerView() {
+            const url = `live-customer.html?bookingId=${bookingId}`;
+            window.open(url, '_blank');
+        }
+
+        function openWorkerView() {
+            const url = `live-worker.html?bookingId=${bookingId}`;
+            window.open(url, '_blank');
+        }
+
+        // Store booking ID in localStorage for quick access
+        localStorage.setItem('lastTestBookingId', bookingId);
+    </script>
+</body>
+
+</html>

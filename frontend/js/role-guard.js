@@ -10,9 +10,9 @@
     if (!userProfile) {
         // Redirect to appropriate onboarding page
         if (userRole === 'customer') {
-            window.location.href = '/onboarding/customer-about.html';
+            window.location.href = '/onboarding/customer-verification.html';
         } else if (userRole === 'worker') {
-            window.location.href = '/onboarding/worker-about.html';
+            window.location.href = '/onboarding/worker-verification.html';
         } else {
             window.location.href = '/auth/role-select.html';
         }

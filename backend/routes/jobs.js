@@ -6,7 +6,6 @@ const { db } = require('../config/firebase');
 // @desc    Create a new job
 router.post('/', async (req, res) => {
     try {
-        console.log('POST /api/jobs called with body:', req.body);
         // Combine date/time if provided separate
         let { customerId, customerName, workerId, workerName, serviceType, address, scheduledTime, date, time } = req.body;
 

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Verification Test - KaryaSetu</title>
+    <link rel="stylesheet" href="css/verification.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="verification-container">
+        <div class="verification-card">
+            <div class="verification-header">
+                <h2>🤖 AI Document Verification Test</h2>
+                <p>Upload any government ID to test automatic verification</p>
+            </div>
+
+            <!-- Document Type Selection -->
+            <div class="document-type-selector">
+                <label for="documentType">Select Document Type</label>
+                <select id="documentType">
+                    <option value="">-- Choose Document Type --</option>
+                    <option value="aadhaar">Aadhaar Card</option>
+                    <option value="pan">PAN Card</option>
+                    <option value="driving_license">Driving License</option>
+                    <option value="voter_id">Voter ID</option>
+                    <option value="passport">Passport</option>
+                </select>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Drag & Drop your document here</h3>
+                <p>or click to browse</p>
+                <p class="file-types">Supported formats: JPG, PNG (max 5MB)</p>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+
+            <!-- Preview Area -->
+            <div class="preview-area" id="previewArea">
+                <div class="preview-image-container">
+                    <img id="previewImage" class="preview-image" alt="Document preview">
+                    <button class="remove-image-btn" id="removeImageBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <button class="verify-btn" id="verifyBtn">
+                    <i class="fas fa-check-circle"></i> Verify Document with AI
+                </button>
+            </div>
+
+            <!-- Results Area -->
+            <div class="results-area" id="resultsArea">
+                <!-- Results will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>AI is Verifying Document...</h3>
+            <p>Analyzing authenticity, extracting data, and checking for fraud...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let imageBase64 = null;
+
+        // Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const documentTypeSelect = document.getElementById('documentType');
+        const previewArea = document.getElementById('previewArea');
+        const previewImage = document.getElementById('previewImage');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const resultsArea = document.getElementById('resultsArea');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // Upload area click
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // File input change
+        fileInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        // Remove image
+        removeImageBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetUpload();
+        });
+
+        // Verify button
+        verifyBtn.addEventListener('click', verifyDocument);
+
+        function handleFileSelect(file) {
+            if (!file) return;
+
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please upload a valid image file (JPG, PNG)');
+                return;
+            }
+
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+
+            convertToBase64(file);
+        }
+
+        function convertToBase64(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imageBase64 = e.target.result.split(',')[1];
+                previewImage.src = e.target.result;
+                previewArea.classList.add('active');
+                resultsArea.classList.remove('active');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetUpload() {
+            imageBase64 = null;
+            fileInput.value = '';
+            previewArea.classList.remove('active');
+            resultsArea.classList.remove('active');
+        }
+
+        async function verifyDocument() {
+            const documentType = documentTypeSelect.value;
+
+            if (!documentType) {
+                alert('Please select a document type');
+                return;
+            }
+
+            if (!imageBase64) {
+                alert('Please upload a document first');
+                return;
+            }
+
+            try {
+                loadingOverlay.classList.add('active');
+                verifyBtn.classList.add('loading');
+                verifyBtn.disabled = true;
+
+                const response = await fetch(`${API_BASE_URL}/verification/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        imageBase64: imageBase64,
+                        documentType: documentType,
+                        userId: 'test-user-' + Date.now() // Test user ID
+                    })
+                });
+
+                const result = await response.json();
+
+                loadingOverlay.classList.remove('active');
+                verifyBtn.classList.remove('loading');
+                verifyBtn.disabled = false;
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    alert('Verification failed: ' + result.error);
+                }
+
+            } catch (error) {
+                console.error('Verification error:', error);
+                loadingOverlay.classList.remove('active');
+                verifyBtn.classList.remove('loading');
+                verifyBtn.disabled = false;
+                alert('Error: ' + error.message + '\n\nMake sure the backend is running on port 5000');
+            }
+        }
+
+        function displayResults(apiResult) {
+            const { result, canProceed, finalStatus, rejectionReason } = apiResult;
+            const { isValid, confidenceScore, extractedData, qualityAssessment, securityChecks, issues, recommendations } = result;
+
+            let resultClass = canProceed ? 'success' : 'error';
+            let statusIcon = canProceed ? 'fa-check-circle' : 'fa-times-circle';
+            let statusText = canProceed ? '✅ APPROVED - Document Verified' : '❌ DENIED - Verification Failed';
+
+            const html = `
+                <div class="result-card ${resultClass}">
+                    <div class="result-header">
+                        <div class="result-status">
+                            <i class="fas ${statusIcon}"></i>
+                            <span>${statusText}</span>
+                        </div>
+                        <div class="confidence-score">
+                            AI Confidence: ${confidenceScore}%
+                        </div>
+                    </div>
+
+                    ${canProceed ? `
+                    <div class="result-section">
+                        <h4 style="color: #38a169;"><i class="fas fa-check-double"></i> Automatic Approval</h4>
+                        <div style="background: rgba(198, 246, 213, 0.5); padding: 1rem; border-radius: 8px; color: #22543d; font-weight: 500;">
+                            ✓ Document verified successfully by AI<br>
+                            ✓ No security issues detected<br>
+                            ✓ Confidence score: ${confidenceScore}%<br>
+                            ✓ User would be allowed to register
+                        </div>
+                    </div>` : ''}
+
+                    ${!canProceed && rejectionReason ? `
+                    <div class="result-section">
+                        <h4 style="color: #e53e3e;"><i class="fas fa-ban"></i> Rejection Reason</h4>
+                        <div style="background: rgba(254, 215, 215, 0.5); padding: 1rem; border-radius: 8px; color: #742a2a; font-weight: 500;">
+                            ${rejectionReason}
+                        </div>
+                    </div>` : ''}
+
+                    ${extractedData && Object.keys(extractedData).some(key => extractedData[key]) ? `
+                    <div class="result-section">
+                        <h4><i class="fas fa-database"></i> Extracted Information</h4>
+                        <div class="data-grid">
+                            ${extractedData.name ? `<div class="data-item"><label>Name</label><div class="value">${extractedData.name}</div></div>` : ''}
+                            ${extractedData.idNumber ? `<div class="data-item"><label>ID Number</label><div class="value">${extractedData.idNumber}</div></div>` : ''}
+                            ${extractedData.dateOfBirth ? `<div class="data-item"><label>DOB</label><div class="value">${extractedData.dateOfBirth}</div></div>` : ''}
+                            ${extractedData.address ? `<div class="data-item"><label>Address</label><div class="value">${extractedData.address}</div></div>` : ''}
+                        </div>
+                    </div>` : ''}
+
+                    ${qualityAssessment ? `
+                    <div class="result-section">
+                        <h4><i class="fas fa-image"></i> Quality Assessment</h4>
+                        <div class="data-grid">
+                            <div class="data-item"><label>Clarity</label><div class="value">${qualityAssessment.imageClarity}</div></div>
+                            <div class="data-item"><label>Completeness</label><div class="value">${qualityAssessment.completeness}</div></div>
+                            <div class="data-item"><label>Lighting</label><div class="value">${qualityAssessment.lighting}</div></div>
+                        </div>
+                    </div>` : ''}
+
+                    ${securityChecks ? `
+                    <div class="result-section">
+                        <h4><i class="fas fa-shield-alt"></i> Security Checks</h4>
+                        <div class="data-grid">
+                            <div class="data-item"><label>Tampering</label><div class="value">${securityChecks.tamperingDetected ? '⚠️ Detected' : '✅ None'}</div></div>
+                            <div class="data-item"><label>Manipulation</label><div class="value">${securityChecks.digitalManipulation ? '⚠️ Detected' : '✅ None'}</div></div>
+                        </div>
+                    </div>` : ''}
+
+                    ${issues && issues.length > 0 ? `
+                    <div class="result-section">
+                        <h4><i class="fas fa-exclamation-circle"></i> Issues Detected</h4>
+                        <ul class="issues-list">
+                            ${issues.map(issue => `<li><i class="fas fa-times-circle"></i> ${issue}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+
+                    <div class="action-buttons">
+                        <button class="btn-resubmit" onclick="location.reload()">
+                            <i class="fas fa-redo"></i> Test Another Document
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            resultsArea.innerHTML = html;
+            resultsArea.classList.add('active');
+            resultsArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+
+</html>
