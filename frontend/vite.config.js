@@ -23,9 +23,10 @@ function getHtmlEntries(dir, entries = {}) {
 const input = getHtmlEntries(resolve(__dirname));
 
 export default defineConfig({
-    root: '.',
+    base: '/',
+    root: resolve(__dirname),
     build: {
-        outDir: 'dist',
+        outDir: resolve(__dirname, 'dist'),
         rollupOptions: {
             input
         }
