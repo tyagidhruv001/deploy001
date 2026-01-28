@@ -1,7 +1,7 @@
 const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
 // If deployed on Cloudflare, replace VERCEL_BACKEND_URL with your Vercel deployment URL
-const VERCEL_BACKEND_URL = ''; // e.g. 'https://your-app.vercel.app'
+const VERCEL_BACKEND_URL = 'https://deploy001-cyan.vercel.app'; // e.g. 'https://your-app.vercel.app'
 
 export const API_BASE = isLocal
     ? "http://localhost:5000/api"
