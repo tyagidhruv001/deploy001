@@ -1,5 +1,6 @@
-import { auth, db } from '../config.js';
-import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { auth, db, doc, setDoc } from '../config.js';
+
+console.log('Worker Verification Script Loaded');
 
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
