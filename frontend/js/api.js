@@ -89,6 +89,42 @@ const API = {
         }
     },
 
+    // Bookings endpoints (Real customer jobs from Firestore)
+    bookings: {
+        async create(bookingData) {
+            const response = await fetch(`${API_BASE_URL}/bookings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bookingData)
+            });
+            if (!response.ok) throw new Error('Failed to create booking');
+            return response.json();
+        },
+
+        async getByUser(userId, role) {
+            const response = await fetch(`${API_BASE_URL}/bookings?user_id=${userId}&role=${role}`);
+            if (!response.ok) throw new Error('Failed to fetch bookings');
+            return response.json();
+        },
+
+        async getAvailable(limit = 50) {
+            // Get pending bookings that workers can accept
+            const response = await fetch(`${API_BASE_URL}/bookings?status=pending&limit=${limit}`);
+            if (!response.ok) throw new Error('Failed to fetch available bookings');
+            return response.json();
+        },
+
+        async update(bookingId, updates) {
+            const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+            if (!response.ok) throw new Error('Failed to update booking');
+            return response.json();
+        }
+    },
+
     // Job endpoints
     jobs: {
         async create(jobData) {
@@ -303,3 +339,151 @@ const API = {
 
 // Expose to window
 window.API = API;
+
+
+API.transactions = {
+    async getByUser(userId) {
+        try {
+            const { collection, query, where, orderBy, limit, getDocs } = window.fbFunctions;
+            const q = query(
+                collection(window.db, 'transactions'),
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc'),
+                limit(100)
+            );
+
+            const snap = await getDocs(q);
+            return snap.docs.map(d => {
+                const data = d.data();
+                return {
+                    id: d.id,
+                    ...data,
+                    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now())
+                };
+            });
+        } catch (error) {
+            console.error("Error fetching transactions:", error);
+            return [];
+        }
+    }
+};
+
+API.payments = {
+    async getBalance(userId) {
+        try {
+            const { doc, getDoc } = window.fbFunctions;
+            const snap = await getDoc(doc(window.db, 'wallets', userId));
+            return {
+                success: true,
+                balance: snap.exists() ? (parseFloat(snap.data().balance) || 0) : 0
+            };
+        } catch (err) {
+            console.error('Balance fetch error:', err);
+            return { success: false, balance: 0, error: err.message };
+        }
+    },
+
+    async withdraw(data) {
+        const { userId, amount } = data;
+        const { collection, addDoc, doc, updateDoc, increment } = window.fbFunctions;
+
+        try {
+            // Create withdrawal request
+            const withdrawalRef = await addDoc(collection(window.db, 'withdrawals'), {
+                userId,
+                amount: parseFloat(amount),
+                status: 'pending',
+                requestedAt: new Date()
+            });
+
+            // Deduct from wallet
+            await updateDoc(doc(window.db, 'wallets', userId), {
+                balance: increment(-parseFloat(amount))
+            });
+
+            return { success: true, withdrawalId: withdrawalRef.id };
+        } catch (error) {
+            console.error("Withdrawal error:", error);
+            return { success: false, error: error.message };
+        }
+    }
+};
+
+API.referrals = {
+    async create(data) {
+        const { collection, addDoc } = window.fbFunctions;
+        try {
+            return await addDoc(collection(window.db, 'referrals'), {
+                ...data,
+                createdAt: new Date()
+            });
+        } catch (error) {
+            console.error("Referral creation error:", error);
+            throw error;
+        }
+    },
+
+    async getHistory(userId) {
+        try {
+            const { collection, query, where, orderBy, getDocs } = window.fbFunctions;
+            const q = query(
+                collection(window.db, 'referrals'),
+                where('referrerId', '==', userId),
+                orderBy('createdAt', 'desc')
+            );
+
+            const snap = await getDocs(q);
+            return snap.docs.map(d => {
+                const data = d.data();
+                return {
+                    id: d.id,
+                    ...data,
+                    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || Date.now()))
+                };
+            });
+        } catch (error) {
+            console.error("Error fetching referral history:", error);
+            return [];
+        }
+    }
+};
+
+API.support = {
+    async createTicket(data) {
+        const { collection, addDoc } = window.fbFunctions;
+        try {
+            return await addDoc(collection(window.db, 'support_tickets'), {
+                ...data,
+                status: 'open',
+                createdAt: new Date()
+            });
+        } catch (error) {
+            console.error("Support ticket error:", error);
+            throw error;
+        }
+    },
+
+    async getUserTickets(userId) {
+        try {
+            const { collection, query, where, orderBy, getDocs } = window.fbFunctions;
+            const q = query(
+                collection(window.db, 'support_tickets'),
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc')
+            );
+
+            const snap = await getDocs(q);
+            return snap.docs.map(d => {
+                const data = d.data();
+                return {
+                    id: d.id,
+                    ...data,
+                    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || Date.now()))
+                };
+            });
+        } catch (error) {
+            console.error("Error fetching tickets:", error);
+            return [];
+        }
+    }
+};

@@ -334,10 +334,41 @@
         </div>
 
         <div class="active-booking-card" style="min-height: 400px;">
-            <!-- Step 1: Date & Time -->
+            <!-- Step 1: Service, Date & Time -->
             <div class="booking-step active" id="step-1">
                 <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-calendar-alt" style="color: var(--neon-blue);"></i>
-                    Select Date & Time</h2>
+                    Service Details</h2>
+
+                <!-- Service Category Selector -->
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="booking-category"
+                        style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 500;">
+                        <i class="fas fa-briefcase" style="color: var(--neon-blue); margin-right: 0.5rem;"></i>
+                        Service Category
+                    </label>
+                    <select id="booking-category" class="form-input" required
+                        style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: #fff; font-size: 1rem;">
+                        <option value="General">Select a service...</option>
+                        <option value="Plumber">Plumber</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="Carpenter">Carpenter</option>
+                        <option value="Painter">Painter</option>
+                        <option value="Cleaner">Home Cleaning</option>
+                        <option value="AC Technician">AC Repair</option>
+                        <option value="Appliance Repair">Appliance Repair</option>
+                        <option value="Pest Control">Pest Control</option>
+                        <option value="Salon">Salon & Spa</option>
+                        <option value="Mechanic">Vehicle Mechanic</option>
+                        <option value="Gardener">Gardening</option>
+                        <option value="Laundry">Laundry Service</option>
+                        <option value="Packers Movers">Packers & Movers</option>
+                        <option value="Interior Designer">Interior Design</option>
+                        <option value="Security">Security Guard</option>
+                        <option value="RO Water">RO & Water</option>
+                        <option value="Home Security">Home Security</option>
+                    </select>
+                </div>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                     <div>
                         <label class="input-label">Preferred Date</label>
@@ -408,7 +439,8 @@
                 <div>
                     <label class="input-label">Payment Method</label>
                     <div style="display: flex; gap: 1rem;" id="payment-methods">
-                        <button class="btn btn-secondary active" onclick="selectPaymentMethod(this, 'cash')">Cash after
+                        <button class="btn btn-secondary active" onclick="selectPaymentMethod(this, 'cash')">Cash
+                            after
                             Job</button>
                         <button class="btn btn-secondary" id="wallet-payment-btn"
                             onclick="selectPaymentMethod(this, 'wallet')">Wallet (Loading...)</button>
@@ -442,7 +474,8 @@
             <div class="profile-body">
                 <div style="margin-bottom: 1.5rem;">
                     <h2 id="modal-name" style="margin: 0; font-size: 1.8rem; color: #fff;">Walter White</h2>
-                    <p id="modal-category" style="margin: 5px 0; color: var(--neon-blue); font-weight: 500;">Plumber • 5
+                    <p id="modal-category" style="margin: 5px 0; color: var(--neon-blue); font-weight: 500;">Plumber
+                        • 5
                         Years Exp</p>
                     <div id="modal-rating" style="color: var(--neon-orange); margin-top: 5px;">
                         <i class="fas fa-star"></i> 4.8 (12 Reviews)
@@ -491,12 +524,34 @@
         let currentStep = 1;
         const totalSteps = 4;
         let selectedWorker = '';
+        let selectedWorkerId = '';
         let selectedWorkerPrice = 450;
         let paymentMethod = 'cash';
         let userWalletBalance = 0;
-        const serviceType = localStorage.getItem('karyasetu_selected_service') || 'General';
+        // Make serviceType mutable so we can update it from dropdown
+        let serviceType = localStorage.getItem('karyasetu_selected_service') || 'General';
 
-        document.getElementById('service-title-display').innerHTML = `Book <span class="text-gradient">${serviceType}</span>`;
+        // Initialize UI with current serviceType
+        updateServiceTitle();
+
+        // Setup Category Select (for form data)
+        const categorySelect = document.getElementById('booking-category');
+        if (categorySelect) {
+            categorySelect.value = serviceType;
+            // Update serviceType when user changes category
+            categorySelect.addEventListener('change', function () {
+                serviceType = this.value;
+                localStorage.setItem('karyasetu_selected_service', serviceType);
+                updateServiceTitle();
+                // Reload workers for new category
+                loadWorkers();
+            });
+        }
+
+        function updateServiceTitle() {
+            const titleEl = document.getElementById('service-title-display');
+            if (titleEl) titleEl.innerHTML = `Book <span class="text-gradient">${serviceType === 'General' ? 'Service' : serviceType}</span>`;
+        }
 
         const elements = {
             nextBtn: document.getElementById('next-btn'),
@@ -511,10 +566,12 @@
             if (currentStep === 1) {
                 const date = document.getElementById('booking-date').value;
                 const time = document.getElementById('booking-time').value;
+
                 if (!date || !time) {
                     alert('Please select both date and time.');
                     return;
                 }
+                // Category is now pre-selected from dashboard, no need to validate here
             }
 
             if (currentStep === 2) {
@@ -559,6 +616,11 @@
             elements.prevBtn.style.visibility = (currentStep === 1) ? 'hidden' : 'visible';
             elements.nextBtn.textContent = (currentStep === totalSteps) ? 'Confirm Booking' : 'Next Step';
 
+            // Render Workers if entering Step 2
+            if (currentStep === 2) {
+                renderWorkers();
+            }
+
             // Update Summary
             if (currentStep === 4) {
                 elements.summaryService.textContent = serviceType;
@@ -600,10 +662,11 @@
             }
         }
 
-        function selectWorker(card, name, price) {
+        function selectWorker(card, name, price, uid) {
             document.querySelectorAll('.worker-selection-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedWorker = name;
+            selectedWorkerId = uid;
             selectedWorkerPrice = price;
 
             // Check if wallet still has enough balance
@@ -623,6 +686,29 @@
                 return;
             }
 
+            // Validate required fields
+            const bookingDate = document.getElementById('booking-date').value;
+            const bookingTime = document.getElementById('booking-time').value;
+            const bookingAddress = document.getElementById('booking-address').value;
+
+            if (!serviceType || serviceType === 'General') {
+                alert('Please select a service category.');
+                goToStep(1);
+                return;
+            }
+
+            if (!bookingDate || !bookingTime) {
+                alert('Please select a date and time.');
+                goToStep(1);
+                return;
+            }
+
+            if (!bookingAddress) {
+                alert('Please enter your service address.');
+                goToStep(1);
+                return;
+            }
+
             const btn = document.getElementById('next-btn');
             const originalText = btn.textContent;
             btn.textContent = 'Processing...';
@@ -635,25 +721,36 @@
                 return;
             }
 
-            const newBooking = {
-                customerId: user.uid,
-                customerName: user.name,
-                workerId: 'auto-assign',
-                workerName: selectedWorker || 'Any Professional',
-                serviceType: serviceType,
-                date: document.getElementById('booking-date').value,
-                time: document.getElementById('booking-time').value,
-                address: document.getElementById('booking-address').value,
-                price: selectedWorkerPrice,
-                paymentMethod: paymentMethod
+            // Prepare booking data for Firestore
+            const bookingData = {
+                customer_id: user.uid,
+                worker_id: selectedWorkerId || null,
+                service_type: serviceType,
+                location: {
+                    address: bookingAddress,
+                    geopoint: { lat: 0, lng: 0 } // Will be updated with actual coordinates
+                },
+                is_emergency: false,
+                payment: {
+                    amount: selectedWorkerPrice,
+                    status: paymentMethod === 'wallet' ? 'paid' : 'pending',
+                    method: paymentMethod
+                },
+                scheduled_time: `${bookingDate}T${bookingTime}`,
+                customer_name: user.name || 'Customer',
+                customer_phone: user.phone || '',
+                worker_name: selectedWorker || 'Any Professional'
             };
 
             try {
-                // 1. Create the booking
-                const response = await API.jobs.create(newBooking);
+                // 1. Create the booking in Firestore via API
+                const response = await API.bookings.create(bookingData);
+                console.log('Booking created in Firestore:', response);
 
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                 const baseUrl = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+
+                // 2. Deduct from wallet if wallet payment
                 if (paymentMethod === 'wallet') {
                     const deductRes = await fetch(`${baseUrl}/payments/deduct`, {
                         method: 'POST',
@@ -668,29 +765,28 @@
                     const deductData = await deductRes.json();
                     if (!deductData.success) {
                         console.warn('Wallet deduction failed after booking creation:', deductData.error);
-                        // In a real app we might want to cancel the booking or mark as unpaid
                     }
                 }
 
-                // 3. Update Local Storage
+                // 3. Update Local Storage cache
                 let bookings = Storage.get('karyasetu_bookings') || [];
                 bookings.unshift({
                     id: response.id,
-                    service: newBooking.serviceType,
+                    service: serviceType,
                     worker: selectedWorker || 'Assigning soon...',
-                    date: newBooking.date,
-                    time: newBooking.time,
-                    address: newBooking.address,
+                    date: bookingDate,
+                    time: bookingTime,
+                    address: bookingAddress,
                     status: 'Pending',
                     price: selectedWorkerPrice
                 });
                 Storage.set('karyasetu_bookings', bookings);
 
-                alert('Booking Successful!');
+                alert('🎉 Booking Successful! Your service has been scheduled.');
                 window.location.href = 'customer-dashboard.html';
             } catch (error) {
                 console.error('Booking failed:', error);
-                alert('Booking failed. Please try again.');
+                alert('Booking failed: ' + (error.message || 'Please try again.'));
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
@@ -704,23 +800,59 @@
         // --- Dynamic Worker Fetching ---
         async function fetchWorkers(service) {
             try {
-                // Map complex service names to simple skills if needed
-                // e.g. "Salon for Men" -> "Salon"
-                let skillQuery = service;
-                if (service.includes('Salon')) skillQuery = 'Salon';
-                if (service === 'Carpentry') skillQuery = 'Carpenter';
-                if (service === 'Painting') skillQuery = 'Painter';
-                if (service === 'Plumbing') skillQuery = 'Plumber';
-                if (service === 'Electrical') skillQuery = 'Electrician';
+                // Map UI-friendly category names to database field values
+                // Database uses: 'electrical', 'plumbing', etc. (lowercase adjectives)
+                // UI uses: 'Electrician', 'Plumber', etc. (capitalized nouns)
 
-                // Note: The seeded data uses 'Carpenter', 'Painter', 'Plumber' etc.
-                // But the booking service types are nouns (Carpentry).
-                // This mapping fixes the 'No workers found' error.
+                const categoryMap = {
+                    // Core Services
+                    'Electrician': 'electrician',
+                    'Plumber': 'plumber',
+                    'Carpenter': 'carpenter',
+                    'Painter': 'painter',
 
-                console.log(`Fetching workers for skill: ${skillQuery}`);
-                // In a real app we might fetch all and filter if backend skill match is strict
-                // But our backend supports array-contains
-                const workers = await API.workers.getAll({ category: skillQuery });
+                    // Home Services
+                    'Cleaner': 'cleaner',
+                    'AC Technician': 'ac-repair',
+                    'Appliance Repair': 'appliance-repair',
+                    'Pest Control': 'pest-control',
+
+                    // Personal Services
+                    'Salon': 'salon',
+                    'Beauty': 'salon',
+                    'Laundry': 'laundry',
+
+                    // Specialized Services
+                    'Mechanic': 'mechanic',
+                    'Gardener': 'gardener',
+                    'Packers Movers': 'packers-movers',
+                    'Packers': 'packers-movers', // Dashboard uses 'Packers'
+                    'Interior Designer': 'interior-design',
+                    'Interior': 'interior-design', // Dashboard uses 'Interior'
+                    'Security': 'security',
+                    'RO Service': 'ro-service', // Dashboard uses 'RO Service'
+                    'RO Water': 'ro-water',
+                    'Home Security': 'home-security',
+
+                    // Legacy mappings
+                    'Carpentry': 'carpenter',
+                    'Painting': 'painter',
+                    'Plumbing': 'plumber',
+                    'Electrical': 'electrician'
+                };
+
+                let skillQuery = categoryMap[service] || service.toLowerCase();
+
+                console.log(`Fetching workers for category: ${service} → ${skillQuery}`);
+
+                // Strict Filtering: If it's not General/All, filtering MUST happen.
+                const filters = {};
+                if (service !== 'General' && service !== 'all') {
+                    filters.category = skillQuery;
+                }
+
+                console.log('Sending filters:', filters);
+                const workers = await API.workers.getAll(filters);
                 console.log('Fetched workers:', workers);
                 return workers;
             } catch (error) {
@@ -732,6 +864,9 @@
         async function renderWorkers() {
             const container = document.getElementById('worker-list');
             if (!container) return;
+
+            console.log('=== renderWorkers called ===');
+            console.log('Current serviceType:', serviceType);
 
             container.innerHTML = '<div style="text-align:center; padding:2rem; color:white;">Loading professionals...</div>';
 
@@ -763,13 +898,35 @@
             container.innerHTML = workers.map(w => {
                 // Map Backend Data to UI
                 const profile = w.profile || {};
-                const name = w.name || 'Unknown Pro';
+                const name = w.name || w.displayName || 'Unknown Pro';
                 const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                 const rating = w.karyasetu_rating || (4.0 + Math.random()).toFixed(1);
                 const reviews = Math.floor(Math.random() * 50) + 1; // Placeholder
-                const price = profile.hourlyRate || 350;
+                const price = profile.hourlyRate || w.base_price || 350;
                 const badge = profile.experience ? (profile.experience.charAt(0).toUpperCase() + profile.experience.slice(1) + ' Pro') : 'Service Provider';
                 const isTrackable = parseFloat(rating) >= 4.5;
+
+                // Get worker's profession from serviceCategory
+                const professionMap = {
+                    'electrical': 'Electrician',
+                    'plumbing': 'Plumber',
+                    'carpentry': 'Carpenter',
+                    'painting': 'Painter',
+                    'cleaning': 'Cleaner',
+                    'ac-repair': 'AC Technician',
+                    'mechanic': 'Mechanic',
+                    'gardening': 'Gardener',
+                    'salon': 'Beautician',
+                    'pest-control': 'Pest Control',
+                    'packers-movers': 'Packers & Movers',
+                    'interior-design': 'Interior Designer',
+                    'security': 'Security Guard',
+                    'laundry': 'Laundry Service',
+                    'ro-water': 'RO Technician',
+                    'appliance-repair': 'Appliance Tech'
+                };
+                const cat = w.category || w.serviceCategory || '';
+                const profession = professionMap[cat.toLowerCase()] || cat || 'Professional';
 
                 // Fallback avatar color
                 const bg = `linear-gradient(135deg, var(--neon-blue), var(--neon-purple))`;
@@ -788,9 +945,14 @@
                             <span>${rating} <i class="fas fa-star rating-star"></i></span>
                             <span>(${reviews} reviews)</span>
                         </div>
-                        <div class="tracking-status ${isTrackable ? 'tracking-live' : 'tracking-unavailable'}">
-                            <i class="fas ${isTrackable ? 'fa-map-marker-alt' : 'fa-map-marker-slash'}"></i>
-                            ${isTrackable ? 'Live Tracking Available' : 'Tracking Unavailable'}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                            <div class="tracking-status ${isTrackable ? 'tracking-live' : 'tracking-unavailable'}">
+                                <i class="fas ${isTrackable ? 'fa-map-marker-alt' : 'fa-map-marker-slash'}"></i>
+                                ${isTrackable ? 'Live Tracking Available' : 'Tracking Unavailable'}
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--neon-blue); font-weight: 600;">
+                                <i class="fas fa-briefcase"></i> ${profession}
+                            </div>
                         </div>
                         <div class="card-actions">
                             <button class="btn btn-sm" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff;" onclick="event.stopPropagation(); showWorkerProfile('${w.uid}')">View Details</button>

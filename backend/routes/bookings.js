@@ -16,13 +16,16 @@ router.post('/', async (req, res) => {
             scheduled_time,
             worker_location, // { lat, lng }
             eta,
-            distance
+            distance,
+            customer_name,
+            customer_phone,
+            worker_name
             // Status defaults to 'pending'
         } = req.body;
 
         const bookingData = {
             customer_id,
-            worker_id,
+            worker_id: worker_id || null,
             status: 'pending', // 'pending'|'assigned'|'on_the_way'|'arrived'|'started'|'completed'|'closed'|'cancelled'
             service_type,
             location,
@@ -41,14 +44,18 @@ router.post('/', async (req, res) => {
                 assigned_at: null,
                 started_at: null,
                 completed_at: null
-            }
+            },
+            // Customer and worker info
+            customer_name: customer_name || 'Customer',
+            customer_phone: customer_phone || '',
+            worker_name: worker_name || 'Any Professional'
         };
 
         if (scheduled_time) bookingData.scheduled_time = scheduled_time;
 
         const docRef = await db.collection('bookings').add(bookingData);
 
-        // Update user stats? (optional)
+        console.log(`New booking created: ${docRef.id} for service: ${service_type}`);
 
         res.status(201).json({ id: docRef.id, ...bookingData });
     } catch (error) {
@@ -57,36 +64,75 @@ router.post('/', async (req, res) => {
 });
 
 // @route   GET /api/bookings
-// @desc    Get bookings for a user (customer or worker)
+// @desc    Get bookings for a user (customer or worker) or by status
 router.get('/', async (req, res) => {
     try {
-        const { user_id, role } = req.query;
-
-        if (!user_id) return res.status(400).json({ error: 'user_id is required' });
+        const { user_id, role, status, limit } = req.query;
 
         let query = db.collection('bookings');
 
-        if (role === 'customer') {
-            query = query.where('customer_id', '==', user_id);
-        } else if (role === 'worker') {
-            query = query.where('worker_id', '==', user_id);
-        } else {
-            // Try both? Or return error
-            // For simplicity, allowed to query by specific field if provided
-            // But let's assume valid role passed
+        // Filter by status (for available jobs)
+        if (status) {
+            query = query.where('status', '==', status);
         }
+
+        // Filter by user role
+        if (user_id) {
+            if (role === 'customer') {
+                query = query.where('customer_id', '==', user_id);
+            } else if (role === 'worker') {
+                query = query.where('worker_id', '==', user_id);
+            }
+        }
+
+        // Apply limit (default 50 for available jobs)
+        const maxResults = parseInt(limit) || 50;
+        query = query.limit(maxResults);
 
         const snapshot = await query.get();
         const bookings = [];
+
+        // Fetch all bookings first
         snapshot.forEach(doc => {
             bookings.push({ id: doc.id, ...doc.data() });
         });
 
-        // Sort by timestamp desc (manual sort needed as multiple where clauses usually require index)
-        bookings.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        // Populate customer and worker details
+        const populatedBookings = await Promise.all(bookings.map(async (booking) => {
+            try {
+                // Fetch customer details
+                if (booking.customer_id) {
+                    const customerDoc = await db.collection('users').doc(booking.customer_id).get();
+                    if (customerDoc.exists) {
+                        const customerData = customerDoc.data();
+                        booking.customer_name = customerData.name || customerData.displayName || 'Customer';
+                        booking.customer_phone = customerData.phone || customerData.phoneNumber || 'N/A';
+                        booking.customer_email = customerData.email || '';
+                    }
+                }
 
-        res.status(200).json(bookings);
+                // Fetch worker details if assigned
+                if (booking.worker_id && booking.worker_id !== 'auto-assign') {
+                    const workerDoc = await db.collection('workers').doc(booking.worker_id).get();
+                    if (workerDoc.exists) {
+                        const workerData = workerDoc.data();
+                        booking.worker_name = workerData.name || workerData.displayName || 'Worker';
+                        booking.worker_phone = workerData.phone || workerData.phoneNumber || 'N/A';
+                    }
+                }
+            } catch (err) {
+                console.error(`Error populating booking ${booking.id}:`, err);
+            }
+            return booking;
+        }));
+
+        // Sort by timestamp desc
+        populatedBookings.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        console.log(`Bookings API: status=${status}, role=${role}, user_id=${user_id}, returned ${populatedBookings.length} bookings`);
+        res.status(200).json(populatedBookings);
     } catch (error) {
+        console.error('Bookings API error:', error);
         res.status(500).json({ error: error.message });
     }
 });

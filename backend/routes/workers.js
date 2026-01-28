@@ -80,19 +80,22 @@ router.post('/:uid', async (req, res) => {
 // @route   GET /api/workers
 // @desc    Smart Matching & AI Recommendation
 router.get('/', async (req, res) => {
+    console.log('GET /api/workers triggered');
     try {
         const { category, lat, lng, radiusInKm } = req.query;
+        console.log('Query:', req.query);
 
         let query = db.collection('workers');
 
-        if (category) {
-            query = query.where('category', '==', category);
-        }
+        // Filtering by category is now handled in-memory below to support multiple field names
+        // query = query.where('serviceCategory', '==', category);
 
         // Note: Removed is_online filter to show all workers
         // Can be re-enabled once all workers have is_online field set
 
+        console.log('Fetching from Firestore...');
         const snapshot = await query.get();
+        console.log(`Firestore returned ${snapshot.size} docs`);
         let workers = [];
 
         // Fetch user identity for each worker (Join)
@@ -103,6 +106,13 @@ router.get('/', async (req, res) => {
             const data = doc.data();
             data.id = doc.id;
             data.uid = doc.id; // Frontend expects uid
+
+            // Check if category matches if provided
+            if (category) {
+                const normalize = (s) => (s || '').toLowerCase().replace(/-/g, ' ').trim();
+                const workerCat = data.category || data.serviceCategory || '';
+                if (normalize(workerCat) !== normalize(category)) continue;
+            }
 
             // Fetch name and profile_pic from users collection
             const userDoc = await db.collection('users').doc(doc.id).get();
@@ -123,7 +133,7 @@ router.get('/', async (req, res) => {
             const centerLng = parseFloat(lng);
 
             workers = workers.filter(w => {
-                if (!w.location) return false;
+                if (!w.location || !w.location.lat || !w.location.lng) return false;
                 const distance = getDistanceFromLatLonInKm(centerLat, centerLng, w.location.lat, w.location.lng);
                 // Default radius 20km if not specified
                 const limit = radiusInKm ? parseFloat(radiusInKm) : 20;
@@ -172,7 +182,8 @@ router.get('/', async (req, res) => {
 
         res.status(200).json(workers);
     } catch (error) {
-        console.error('Error in GET /api/workers:', error);
+        console.error('CRITICAL Error in GET /api/workers:', error);
+        console.error(error.stack);
         res.status(500).json({ error: error.message });
     }
 });

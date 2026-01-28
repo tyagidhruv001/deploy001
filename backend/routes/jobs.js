@@ -36,12 +36,13 @@ router.post('/', async (req, res) => {
 // @desc    Get jobs for a user
 router.get('/', async (req, res) => {
     try {
-        const { userId, role } = req.query; // 'customer' or 'worker'
+        const { userId, role, type } = req.query;
 
         let query = db.collection('jobs');
-        if (req.query.type === 'available') {
-            // Fetch jobs that are pending and unassigned (or assigned to auto-assign)
-            query = query.where('status', '==', 'pending').where('workerId', '==', 'auto-assign');
+
+        if (type === 'available') {
+            // Fetch all pending jobs that workers can accept
+            query = query.where('status', '==', 'pending');
         } else if (role === 'customer') {
             query = query.where('customerId', '==', userId);
         } else if (role === 'worker') {
@@ -54,8 +55,10 @@ router.get('/', async (req, res) => {
             jobs.push({ id: doc.id, ...doc.data() });
         });
 
+        console.log(`Jobs API: type=${type}, role=${role}, userId=${userId}, returned ${jobs.length} jobs`);
         res.json(jobs);
     } catch (error) {
+        console.error('Jobs API error:', error);
         res.status(500).json({ error: error.message });
     }
 });

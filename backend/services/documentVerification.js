@@ -4,6 +4,36 @@ require('dotenv').config();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 /**
+ * Sleep utility for retry delays
+ */
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Retry wrapper with exponential backoff
+ */
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            const isRetryable = error.message?.includes('503') ||
+                error.message?.includes('overloaded') ||
+                error.message?.includes('Service Unavailable');
+
+            if (isRetryable && attempt < maxRetries) {
+                const delay = baseDelay * Math.pow(2, attempt - 1); // 1s, 2s, 4s
+                console.log(`Gemini API overloaded, retrying in ${delay}ms (attempt ${attempt}/${maxRetries})...`);
+                await sleep(delay);
+            } else {
+                throw error;
+            }
+        }
+    }
+}
+
+/**
  * Verify document using Gemini AI Vision
  * @param {string} imageBase64 - Base64 encoded image
  * @param {string} documentType - Type of document (aadhaar, pan, driving_license, etc.)
@@ -54,15 +84,18 @@ Provide your response in this EXACT JSON format:
   "verificationTimestamp": "${new Date().toISOString()}"
 }`;
 
-        const result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    mimeType: imageBase64.startsWith('/9j') ? "image/jpeg" : "image/png",
-                    data: imageBase64
+        // Use retry wrapper for the API call
+        const result = await retryWithBackoff(async () => {
+            return await model.generateContent([
+                prompt,
+                {
+                    inlineData: {
+                        mimeType: imageBase64.startsWith('/9j') ? "image/jpeg" : "image/png",
+                        data: imageBase64
+                    }
                 }
-            }
-        ]);
+            ]);
+        }, 3, 2000); // 3 retries with 2s base delay
 
         const responseText = result.response.text();
 
@@ -83,13 +116,19 @@ Provide your response in this EXACT JSON format:
 
     } catch (error) {
         console.error('Document verification error:', error);
+
+        // Provide a more helpful error message for 503 errors
+        const errorMessage = error.message?.includes('503') || error.message?.includes('overloaded')
+            ? 'AI service is temporarily overloaded. Please try again in a few minutes.'
+            : error.message;
+
         return {
             success: false,
-            error: error.message,
+            error: errorMessage,
             data: {
                 isValid: false,
                 confidenceScore: 0,
-                issues: ['Verification failed: ' + error.message]
+                issues: ['Verification failed: ' + errorMessage]
             }
         };
     }

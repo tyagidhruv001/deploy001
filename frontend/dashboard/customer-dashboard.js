@@ -46,8 +46,8 @@ async function refreshCustomerDashboardData() {
     try {
         await renderOverview();
         await renderBookingsGrid(); // Loads 'all' by default
-        renderWallet();
-        renderProfile();
+        await renderWallet();
+        await renderProfile();
         renderFavorites();
         renderSupport();
     } catch (e) {
@@ -1081,13 +1081,46 @@ window.removeProfilePic = function () {
     }
 };
 
-function renderProfile() {
+async function renderProfile() {
     const container = getEl('profile-layout');
     if (!container) return;
-    const user = Storage.get(STORAGE_KEYS.USER) || {};
+
+    let user = Storage.get(STORAGE_KEYS.USER) || {};
+
+    // Fetch fresh data from Firestore if we have a UID
+    if (user.uid) {
+        try {
+            const freshData = await API.auth.getProfile(user.uid);
+            if (freshData) {
+                // Merge fresh data with local data (keep local profilePic if exists)
+                const localProfilePic = user.profilePic;
+                user = { ...user, ...freshData };
+                if (localProfilePic) user.profilePic = localProfilePic;
+
+                // Update localStorage with fresh data
+                Storage.set(STORAGE_KEYS.USER, user);
+                console.log('✅ Profile data refreshed from Firestore:', user);
+            }
+        } catch (e) {
+            console.warn('❌ Could not fetch fresh profile data:', e);
+            // Continue with cached data
+        }
+    }
+
+    // Map common field names for display
+    user.joinedDate = user.joinedDate || user.createdAt || user.created_at || 'Nov 2023';
+    // Format date if it's an ISO string
+    if (user.joinedDate && typeof user.joinedDate === 'string' && user.joinedDate.includes('T')) {
+        try {
+            const date = new Date(user.joinedDate);
+            user.joinedDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        } catch (e) {
+            console.warn('Error formatting joinedDate:', e);
+        }
+    }
 
     // Profile Pic Logic
-    let avatarSrc = user.profilePic || '';
+    let avatarSrc = user.profilePic || user.profile_pic || '';
     let avatarContent = avatarSrc
         ? `<img src="${avatarSrc}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--neon-blue);">`
         : `<div style="width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white;">${user.name ? user.name[0] : 'U'}</div>`;
@@ -1518,12 +1551,21 @@ async function handleProfileEditToggle() {
 
         try {
             // Check if we have a UID to update
+            let updatedUser = { ...user };
             if (user.uid) {
-                await API.auth.updateProfile(user.uid, updates);
+                const response = await API.auth.updateProfile(user.uid, updates);
+                if (response && response.user) {
+                    // Use the specific user data returned from the server
+                    updatedUser = { ...user, ...response.user };
+                } else {
+                    // Fallback to local merge if server didn't return user data
+                    updatedUser = { ...user, ...updates };
+                }
+            } else {
+                updatedUser = { ...user, ...updates };
             }
 
             // Update Local Storage with new values
-            const updatedUser = { ...user, ...updates };
             Storage.set(STORAGE_KEYS.USER, updatedUser);
 
             // Update UI (Header Name, etc.)
@@ -1534,8 +1576,8 @@ async function handleProfileEditToggle() {
             const sidebarName = getEl('user-display-name');
             if (sidebarName) sidebarName.textContent = updatedUser.name;
 
-            // Re-render Profile to reflect changes
-            renderProfile();
+            // Re-render Profile to reflect changes (Important: Await since it's now async)
+            await renderProfile();
 
             // Switch back to "Edit" View
             const inputIds = [
@@ -1614,7 +1656,17 @@ async function renderNearbyWorkers(category = 'all') {
         return;
     }
 
-    listContainer.innerHTML = '<div style="color: #aaa; text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> Loading professionals...</div>';
+    // STYLING: Enforce horizontal scrolling layout
+    listContainer.style.display = 'flex';
+    listContainer.style.flexDirection = 'row';
+    listContainer.style.overflowX = 'auto';
+    listContainer.style.gap = '1rem';
+    listContainer.style.padding = '0.5rem';
+    listContainer.style.scrollBehavior = 'smooth';
+    listContainer.style.scrollbarWidth = 'thin'; // Firefox
+
+    // Initial loading state
+    listContainer.innerHTML = '<div style="color: #aaa; text-align: center; padding: 2rem; width: 100%;"><i class="fas fa-spinner fa-spin"></i> Loading professionals...</div>';
 
     try {
         // Get customer location first
@@ -1633,7 +1685,7 @@ async function renderNearbyWorkers(category = 'all') {
         console.log(`API returned ${workers.length} workers:`, workers);
 
         if (workers.length === 0) {
-            listContainer.innerHTML = '<div style="color: #aaa; text-align: center; padding: 2rem;"><i class="fas fa-user-slash"></i><br><br>No workers found in this category.</div>';
+            listContainer.innerHTML = '<div style="color: #aaa; text-align: center; padding: 2rem; width: 100%;"><i class="fas fa-user-slash"></i><br><br>No workers found in this category.</div>';
             // Still initialize map with customer location
             setTimeout(() => initNearbyMap([]), 100);
             return;
@@ -1651,30 +1703,35 @@ async function renderNearbyWorkers(category = 'all') {
             const isOnline = w.is_online !== false;
 
             return `
-                <div class="nearby-worker-card ${!isOnline ? 'offline' : ''}" onclick="window.focusOnWorker('${w.uid}')">
-                    <div class="card-avatar-wrapper">
-                        <div class="card-avatar">${initials}</div>
-                        ${isOnline ? '<div class="online-indicator"></div>' : ''}
+                <div class="nearby-worker-card ${!isOnline ? 'offline' : ''}" onclick="window.focusOnWorker('${w.uid}')" style="min-width: 300px; max-width: 320px; flex-shrink: 0; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; cursor: pointer; transition: transform 0.2s; display: flex; gap: 1rem; align-items: flex-start;">
+                    <div class="card-avatar-wrapper" style="position: relative;">
+                        <div class="card-avatar" style="width: 50px; height: 50px; background: var(--neon-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #000;">${initials}</div>
+                        ${isOnline ? '<div class="online-indicator" style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background: var(--neon-green); border-radius: 50%; border: 2px solid #1a1a1a;"></div>' : ''}
                     </div>
-                    <div class="card-info">
-                        <div class="card-header">
-                            <h4 class="worker-name">${name}</h4>
-                            <div class="worker-price">₹${price}<span>/hr</span></div>
+                    <div class="card-info" style="flex: 1;">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <h4 class="worker-name" style="margin: 0; font-size: 1rem; color: #fff;">${name}</h4>
+                            <div class="worker-price" style="color: var(--neon-green); font-weight: 700;">₹${price}<span>/hr</span></div>
                         </div>
-                        <div class="worker-meta">
+                        <div class="worker-meta" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
                             <span><i class="fas fa-briefcase"></i> ${skill}</span>
-                            <span>•</span>
+                            <span style="margin: 0 4px;">•</span>
                             <span><i class="fas fa-star" style="color: var(--neon-orange);"></i> ${rating.toFixed(1)}</span>
                             <span>(${totalJobs}+ jobs)</span>
                         </div>
-                        ${distance ? `<div class="worker-distance"><i class="fas fa-location-arrow"></i> ${distance}</div>` : ''}
-                        <div class="tracking-status ${isTrackable ? 'tracking-live' : 'tracking-unavailable'}">
-                            <i class="fas ${isTrackable ? 'fa-map-marker-alt' : 'fa-map-marker-slash'}"></i>
-                            ${isTrackable ? 'Live Location' : 'Location Unavailable'}
+                        ${distance ? `<div class="worker-distance" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;"><i class="fas fa-location-arrow"></i> ${distance}</div>` : ''}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                            <div class="tracking-status ${isTrackable ? 'tracking-live' : 'tracking-unavailable'}" style="font-size: 0.75rem; color: ${isTrackable ? 'var(--neon-blue)' : 'var(--text-muted)'};">
+                                <i class="fas ${isTrackable ? 'fa-map-marker-alt' : 'fa-map-marker-slash'}"></i>
+                                ${isTrackable ? 'Live Location' : 'Tracking Unavailable'}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--neon-blue); font-weight: 600;">
+                                <i class="fas fa-briefcase"></i> ${skill}
+                            </div>
                         </div>
-                        <div class="card-actions">
-                            <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); window.showWorkerProfileInDashboard('${w.uid}')"><i class="fas fa-info-circle"></i> Details</button>
-                            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); window.openBookingPage('${w.category}')"><i class="fas fa-calendar-check"></i> Book</button>
+                        <div class="card-actions" style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); window.showWorkerProfileInDashboard('${w.uid}')" style="flex: 1; padding: 0.4rem; font-size: 0.8rem;"><i class="fas fa-info-circle"></i> Details</button>
+                            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); window.openBookingPage('${w.category}')" style="flex: 1; padding: 0.4rem; font-size: 0.8rem;"><i class="fas fa-calendar-check"></i> Book</button>
                         </div>
                     </div>
                 </div>
@@ -1696,7 +1753,7 @@ async function renderNearbyWorkers(category = 'all') {
         // Subscribe to real-time updates for all workers
         if (typeof subscribeToWorkerUpdates === 'function') {
             const workerIds = workers.map(w => w.uid).filter(uid => uid);
-            subscribeToWorkerUpdates(workerIds);
+            subscribeToWorkerUpdates(workerIds, filters);
         }
 
     } catch (error) {
