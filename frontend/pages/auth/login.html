@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login to KaryaSetu - Your Trusted Blue-Collar Service Platform">
+    <title>Login - KaryaSetu</title>
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/pages/auth/auth.css">
+</head>
+
+<body>
+    <div class="auth-container gradient-mesh">
+        <div class="auth-card card-glass login-card">
+            <div class="auth-header">
+                <a href="/index.html" class="back-link">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Back
+                </a>
+                <div class="logo">
+                    <span class="logo-icon">🔧</span>
+                    <span class="logo-text">KaryaSetu</span>
+                </div>
+                <h1>Login</h1>
+                <p>Welcome back! Please sign in.</p>
+            </div>
+            <form class="auth-form" id="loginForm">
+                <div class="alert alert-error hidden" id="errorAlert"></div>
+                <div class="input-group">
+                    <label class="input-label" for="phone">Phone Number</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">📱</span>
+                        <input type="tel" id="phone" class="input-field" placeholder="+91 98765 43210"
+                            pattern="[0-9]{10}" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="password">Password</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">🔐</span>
+                        <input type="password" id="password" class="input-field" placeholder="Enter your password"
+                            minlength="6" required>
+                        <button type="button" class="toggle-password" id="togglePassword"><span
+                                id="eyeIcon">👁️</span></button>
+                    </div>
+                    <span class="input-helper">Minimum 6 characters</span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+                    <span id="loginBtnText">Sign In</span>
+                    <div class="spinner spinner-sm hidden" id="loginSpinner"></div>
+                </button>
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="signup.html" class="link">Sign Up</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script type="module" src="/js/api.js"></script>
+    <script type="module" src="/js/utils.js"></script>
+    <script type="module" src="/pages/auth/auth.js"></script>
+    <script type="module">
+        // Role handling – keep same flow as signup
+        const urlParams = new URLSearchParams(window.location.search);
+        let role = urlParams.get('role') || Storage.get('karyasetu_user_role');
+        if (!role) {
+            // If role not set, redirect to role selection
+            window.location.href = '/pages/auth/role-select.html?mode=login';
+        } else {
+            const roleText = role === 'customer' ? 'Customer' : 'Worker';
+            const h1 = document.querySelector('h1');
+            if (h1) h1.textContent = `Login as ${roleText}`;
+            Storage.set('karyasetu_user_role', role);
+        }
+
+        // Toggle password visibility
+        document.getElementById('togglePassword')?.addEventListener('click', () => {
+            const pwd = document.getElementById('password');
+            const eye = document.getElementById('eyeIcon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                eye.textContent = '👁️‍🗨️';
+            } else {
+                pwd.type = 'password';
+                eye.textContent = '👁️';
+            }
+        });
+
+        // Login form submission
+        document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const loginBtnText = document.getElementById('loginBtnText');
+            const loginSpinner = document.getElementById('loginSpinner');
+            const errorAlert = document.getElementById('errorAlert');
+            // UI feedback
+            loginBtnText.classList.add('hidden');
+            loginSpinner.classList.remove('hidden');
+            loginBtn.disabled = true;
+            errorAlert.classList.add('hidden');
+            const formattedPhone = phone.startsWith('+') ? phone.replace(/\s+/g, '') : `+91${phone.replace(/\s+/g, '')}`;
+            console.log('[LOGIN] Starting login process...', { phone: formattedPhone, role });
+            try {
+                console.log('[LOGIN] Calling API...');
+                const response = await apiFetch('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ idToken: 'mock-token', phone: formattedPhone, role })
+                });
+                console.log('[LOGIN] API response received:', response);
+                // Store session data
+                const userData = {
+                    uid: response.user.uid,
+                    name: response.user.name,
+                    email: response.user.email,
+                    phone: formattedPhone,
+                    role,
+                    loggedIn: true,
+                    loginTime: new Date().toISOString()
+                };
+                console.log('[LOGIN] Storing user data:', userData);
+                Storage.set('karyasetu_user', userData);
+                Storage.set('karyasetu_user_role', role);
+                console.log('[LOGIN] User data stored successfully');
+                // Redirect to appropriate dashboard
+                const redirectUrl = role === 'customer'
+                    ? '/pages/dashboard/customer/customer-dashboard.html'
+                    : '/pages/dashboard/worker/worker-dashboard.html';
+                console.log('[LOGIN] Redirecting to:', redirectUrl);
+                window.location.href = redirectUrl;
+                console.log('[LOGIN] Redirect initiated (this line may not execute)');
+            } catch (err) {
+                console.error('Login error:', err);
+                errorAlert.textContent = err.message || 'Login failed. Please try again.';
+                errorAlert.classList.remove('hidden');
+                loginBtnText.classList.remove('hidden');
+                loginSpinner.classList.add('hidden');
+                loginBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

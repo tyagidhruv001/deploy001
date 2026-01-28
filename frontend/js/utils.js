@@ -297,3 +297,41 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// Global exposure for non-module scripts and during transition
+window.Storage = Storage;
+window.formatDate = formatDate;
+window.formatDateTime = formatDateTime;
+window.getRelativeTime = getRelativeTime;
+window.formatCurrency = formatCurrency;
+window.generateId = generateId;
+window.debounce = debounce;
+window.throttle = throttle;
+window.copyToClipboard = copyToClipboard;
+window.getCurrentLocation = getCurrentLocation;
+window.calculateDistance = calculateDistance;
+window.formatDistance = formatDistance;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.showToast = showToast;
+window.showConfirm = showConfirm;
+
+// ES6 Module exports for module scripts
+export {
+    Storage,
+    formatDate,
+    formatDateTime,
+    getRelativeTime,
+    formatCurrency,
+    generateId,
+    debounce,
+    throttle,
+    copyToClipboard,
+    getCurrentLocation,
+    calculateDistance,
+    formatDistance,
+    showLoading,
+    hideLoading,
+    showToast,
+    showConfirm
+};
