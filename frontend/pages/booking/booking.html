@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Service | KaryaSetu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/pages/dashboard/customer/customer-dashboard.css">
+    <style>
+        /* Override Dashboard Defaults for Standalone Page */
+        body {
+            overflow-y: auto !important;
+            height: auto !important;
+            background: radial-gradient(circle at top center, var(--bg-shade-2), var(--bg-dark-900)), var(--bg-dark-900);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .booking-container-fluent {
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .booking-container-fluent {
+                width: 95%;
+                padding: 1.5rem;
+                max-height: 95vh;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.1rem !important;
+            }
+
+            .step-indicator {
+                gap: 0.5rem;
+            }
+        }
+
+        /* Compact Text Scaling */
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.3rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        p {
+            font-size: 0.9rem;
+        }
+
+        .worker-selection-card {
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .booking-step {
+            /* Ensure steps don't waste space */
+            margin-top: 0.5rem;
+        }
+
+        .step-indicator {
+            margin-bottom: 1.5rem;
+            /* Tighter spacing */
+        }
+
+        .input-group {
+            margin-bottom: 0.8rem;
+        }
+
+        /* Decorative Glow */
+        .booking-container-fluent::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(0, 210, 255, 0.03), transparent 50%);
+            z-index: -1;
+            animation: rotateBg 20s linear infinite;
+        }
+
+        @keyframes rotateBg {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .booking-step {
+            display: none;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .booking-step.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--glass-border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dot.active {
+            background: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+            width: 40px;
+            border-radius: 20px;
+        }
+
+        .worker-selection-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .worker-selection-card:hover {
+            border-color: var(--neon-blue);
+            background: rgba(0, 210, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .worker-selection-card.selected {
+            border-color: var(--neon-green);
+            background: rgba(57, 255, 20, 0.1);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.1);
+        }
+
+        /* Profile Modal Styles */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .profile-modal.active {
+            display: flex;
+        }
+
+        .profile-modal-content {
+            background: var(--bg-dark-800);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .profile-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .profile-close:hover {
+            background: rgba(255, 59, 48, 0.5);
+            transform: rotate(90deg);
+        }
+
+        .profile-header-banner {
+            height: 120px;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            position: relative;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--bg-dark-800);
+            position: absolute;
+            bottom: -50px;
+            left: 30px;
+            background: var(--bg-dark-700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .profile-body {
+            padding: 60px 30px 30px;
+        }
+
+        .skill-tag {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .info-cell {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body class="bg-shade-dark">
+    <div class="booking-container-fluent">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <h1 id="service-title-display">Book <span class="text-gradient">Service</span></h1>
+            <p class="text-muted">Follow the steps to secure your booking.</p>
+        </div>
+
+        <!-- Step Indicators -->
+        <div class="step-indicator">
+            <div class="dot active" id="dot-1"></div>
+            <div class="dot" id="dot-2"></div>
+            <div class="dot" id="dot-3"></div>
+            <div class="dot" id="dot-4"></div>
+        </div>
+
+        <div class="active-booking-card" style="min-height: 400px;">
+            <!-- Step 1: Date & Time -->
+            <div class="booking-step active" id="step-1">
+                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-calendar-alt" style="color: var(--neon-blue);"></i>
+                    Select Date & Time</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <label class="input-label">Preferred Date</label>
+                        <input type="date" id="booking-date" class="input-field"
+                            style="background: var(--bg-dark-700);">
+                    </div>
+                    <div>
+                        <label class="input-label">Preferred Time</label>
+                        <select id="booking-time" class="input-field" style="background: var(--bg-dark-700);">
+                            <option value="09:00">09:00 AM</option>
+                            <option value="10:30">10:30 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="14:30">02:30 PM</option>
+                            <option value="16:00">04:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Professional -->
+            <div class="booking-step" id="step-2">
+                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-user-tie" style="color: var(--neon-purple);"></i>
+                    Choose an Available Worker</h2>
+                <div id="worker-list">
+                    <!-- Dynamic worker cards will be injected here via JS -->
+                </div>
+            </div>
+
+            <!-- Step 3: Address & Contact -->
+            <div class="booking-step" id="step-3">
+                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-location-dot" style="color: var(--neon-pink);"></i>
+                    Contact & Location</h2>
+                <div class="input-group">
+                    <label class="input-label">Service Address (House/Flat No., Street)</label>
+                    <input type="text" id="booking-address" class="input-field"
+                        placeholder="e.g. 402, Skyline Towers, JP Nagar" style="background: var(--bg-dark-700);">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Contact Number</label>
+                    <input type="tel" id="booking-phone" class="input-field" placeholder="+91 98765 43210"
+                        style="background: var(--bg-dark-700);">
+                </div>
+            </div>
+
+            <!-- Step 4: Summary & Payment -->
+            <div class="booking-step" id="step-4">
+                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-file-invoice-dollar"
+                        style="color: var(--neon-orange);"></i> Summary & Payment</h2>
+                <div class="stat-card" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span>Service</span>
+                        <span id="summary-service" style="font-weight: 600;">--</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span>Worker</span>
+                        <span id="summary-worker" style="font-weight: 600;">--</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span>DateTime</span>
+                        <span id="summary-datetime" style="font-weight: 600;">--</span>
+                    </div>
+                    <hr style="border-color: var(--glass-border); margin: 1rem 0;">
+                    <div style="display: flex; justify-content: space-between; font-size: 1.25rem;">
+                        <span style="font-weight: 800;">Total</span>
+                        <span style="font-weight: 800; color: var(--neon-blue);">₹450</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="input-label">Payment Method</label>
+                    <div style="display: flex; gap: 1rem;" id="payment-methods">
+                        <button class="btn btn-secondary active" onclick="selectPaymentMethod(this, 'cash')">Cash after
+                            Job</button>
+                        <button class="btn btn-secondary" id="wallet-payment-btn"
+                            onclick="selectPaymentMethod(this, 'wallet')">Wallet (Loading...)</button>
+                    </div>
+                    <p id="wallet-error"
+                        style="color: var(--neon-pink); font-size: 0.8rem; margin-top: 0.5rem; display: none;">
+                        Insufficient balance. Please top up your wallet.</p>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div style="margin-top: 3rem; display: flex; justify-content: space-between;">
+                <button class="btn btn-secondary" id="prev-btn" style="visibility: hidden;">Back</button>
+                <button class="btn btn-primary" id="next-btn" style="padding: 1rem 3rem;">Next Step</button>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/pages/dashboard/customer/customer-dashboard.html" class="text-muted"
+                style="text-decoration: none;"><i class="fas fa-arrow-left"></i> Cancel and go to dashboard</a>
+        </div>
+    </div>
+
+    <!-- Worker Profile Modal -->
+    <div class="profile-modal" id="worker-profile-modal">
+        <div class="profile-modal-content">
+            <button class="profile-close" onclick="closeWorkerProfile()"><i class="fas fa-times"></i></button>
+            <div class="profile-header-banner">
+                <div class="profile-avatar-large" id="modal-avatar">UP</div>
+            </div>
+            <div class="profile-body">
+                <div style="margin-bottom: 1.5rem;">
+                    <h2 id="modal-name" style="margin: 0; font-size: 1.8rem; color: #fff;">Walter White</h2>
+                    <p id="modal-category" style="margin: 5px 0; color: var(--neon-blue); font-weight: 500;">Plumber • 5
+                        Years Exp</p>
+                    <div id="modal-rating" style="color: var(--neon-orange); margin-top: 5px;">
+                        <i class="fas fa-star"></i> 4.8 (12 Reviews)
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-cell">
+                        <div class="info-label">Hourly Rate</div>
+                        <div class="info-value" id="modal-rate">₹450/hr</div>
+                    </div>
+                    <div class="info-cell">
+                        <div class="info-label">Location</div>
+                        <div class="info-value" id="modal-location">Mumbai, Andheri</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 10px; color: #fff;">About Professional</h4>
+                    <p id="modal-bio"
+                        style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                        Reliable and experienced plumber with expertise in residential plumbing, leaks, and fixture
+                        installations.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 10px; color: #fff;">Skills & Expertise</h4>
+                    <div id="modal-skills">
+                        <span class="skill-tag">Pipe Fitting</span>
+                        <span class="skill-tag">Leak Repair</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-block" id="modal-book-btn" style="margin-top: 1rem;">Book This
+                    Professional</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/config.js"></script>
+    <script type="module" src="/js/api.js"></script>
+    <script type="module" src="/js/utils.js"></script>
+    <script type="module">
+        let currentStep = 1;
+        const totalSteps = 4;
+        let selectedWorker = '';
+        let selectedWorkerId = '';
+        let selectedWorkerPrice = 450;
+        let paymentMethod = 'cash';
+        let userWalletBalance = 0;
+
+        console.log('Booking page loaded');
+        console.log('Checking sessionStorage for service...');
+        console.log('All sessionStorage keys:', Object.keys(sessionStorage));
+
+        // Use sessionStorage to match the Storage utility - remove JSON quotes if present
+        const serviceType = sessionStorage.getItem('karyasetu_selected_service')?.replace(/"/g, '') || 'General';
+        console.log('Retrieved service type:', serviceType);
+
+        // Redirect if no valid service is selected
+        if (!serviceType || serviceType === 'General') {
+            console.warn('No valid service selected, redirecting to dashboard');
+            alert('Please select a service category first.');
+            window.location.href = '/pages/dashboard/customer/customer-dashboard.html';
+            throw new Error('Stopping execution - redirecting');
+        }
+
+        console.log('Service validated successfully:', serviceType);
+        document.getElementById('service-title-display').innerHTML = `Book <span class="text-gradient">${serviceType}</span>`;
+
+        const elements = {
+            nextBtn: document.getElementById('next-btn'),
+            prevBtn: document.getElementById('prev-btn'),
+            summaryService: document.getElementById('summary-service'),
+            summaryWorker: document.getElementById('summary-worker'),
+            summaryDateTime: document.getElementById('summary-datetime'),
+        };
+
+        elements.nextBtn.addEventListener('click', () => {
+            // Validation Logic
+            if (currentStep === 1) {
+                const date = document.getElementById('booking-date').value;
+                const time = document.getElementById('booking-time').value;
+                if (!date || !time) {
+                    alert('Please select both date and time.');
+                    return;
+                }
+            }
+
+            if (currentStep === 2) {
+                if (!selectedWorker) {
+                    alert('Please select a worker to proceed.');
+                    return;
+                }
+            }
+
+            if (currentStep === 3) {
+                const address = document.getElementById('booking-address').value;
+                const phone = document.getElementById('booking-phone').value;
+                if (!address || !phone) {
+                    alert('Please provide address and contact details.');
+                    return;
+                }
+            }
+
+            if (currentStep < totalSteps) {
+                goToStep(currentStep + 1);
+            } else {
+                confirmBooking();
+            }
+        });
+
+        elements.prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        });
+
+        function goToStep(step) {
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            document.getElementById(`dot-${currentStep}`).classList.remove('active');
+
+            currentStep = step;
+
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            document.getElementById(`dot-${currentStep}`).classList.add('active');
+
+            // Update Buttons
+            elements.prevBtn.style.visibility = (currentStep === 1) ? 'hidden' : 'visible';
+            elements.nextBtn.textContent = (currentStep === totalSteps) ? 'Confirm Booking' : 'Next Step';
+
+            // Update Summary
+            if (currentStep === 4) {
+                elements.summaryService.textContent = serviceType;
+                elements.summaryWorker.textContent = selectedWorker || 'Any Professional';
+                elements.summaryDateTime.textContent = `${document.getElementById('booking-date').value} at ${document.getElementById('booking-time').value}`;
+            }
+        }
+
+        async function fetchWalletBalance() {
+            const user = Storage.get('karyasetu_user');
+            if (!user) return;
+            try {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const baseUrl = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+                const response = await fetch(`${baseUrl}/payments/balance/${user.uid}`);
+                const data = await response.json();
+                if (data.success) {
+                    userWalletBalance = data.balance;
+                    const walletBtn = document.getElementById('wallet-payment-btn');
+                    if (walletBtn) walletBtn.textContent = `Wallet (₹${userWalletBalance.toFixed(2)})`;
+                }
+            } catch (error) {
+                console.error('Failed to fetch wallet balance:', error);
+                const walletBtn = document.getElementById('wallet-payment-btn');
+                if (walletBtn) walletBtn.textContent = 'Wallet (Unavailable)';
+            }
+        }
+
+        window.selectPaymentMethod = function (btn, method) {
+            document.querySelectorAll('#payment-methods .btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            paymentMethod = method;
+
+            const errorEl = document.getElementById('wallet-error');
+            if (method === 'wallet' && userWalletBalance < selectedWorkerPrice) {
+                if (errorEl) errorEl.style.display = 'block';
+            } else {
+                if (errorEl) errorEl.style.display = 'none';
+            }
+        }
+
+        function selectWorker(card, name, price, uid) {
+            document.querySelectorAll('.worker-selection-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedWorker = name;
+            selectedWorkerId = uid;
+            selectedWorkerPrice = price;
+
+            // Check if wallet still has enough balance
+            if (paymentMethod === 'wallet' && userWalletBalance < selectedWorkerPrice) {
+                document.getElementById('wallet-error').style.display = 'block';
+            } else {
+                document.getElementById('wallet-error').style.display = 'none';
+            }
+
+            // Update summary total
+            const summaryTotal = document.querySelector('#step-4 span[style*="var(--neon-blue)"]');
+            if (summaryTotal) summaryTotal.textContent = '₹' + price;
+        }
+        // Expose to window for inline onclick handlers
+        window.selectWorker = selectWorker;
+
+        async function confirmBooking() {
+            // Get current user from storage to send customerId
+            const user = Storage.get('karyasetu_user');
+            if (!user || user.role !== 'customer') {
+                alert('Please log in as a customer to book a service.');
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            const btn = document.getElementById('next-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+
+            if (paymentMethod === 'wallet' && userWalletBalance < selectedWorkerPrice) {
+                alert('Insufficient wallet balance. Please add more money or choose another payment method.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            const newBooking = {
+                customerId: user.uid,
+                customerName: user.name,
+                workerId: selectedWorkerId || 'auto-assign',
+                workerName: selectedWorker || 'Any Professional',
+                serviceType: serviceType,
+                date: document.getElementById('booking-date').value,
+                time: document.getElementById('booking-time').value,
+                address: document.getElementById('booking-address').value,
+                price: selectedWorkerPrice,
+                paymentMethod: paymentMethod
+            };
+
+            console.log('Creating booking with data:', newBooking);
+
+            try {
+                // 1. Create the booking
+                console.log('Step 1: Creating booking via API...');
+                const response = await API.jobs.create(newBooking);
+                console.log('Booking created successfully:', response);
+
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const baseUrl = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+
+                if (paymentMethod === 'wallet') {
+                    console.log('Step 2: Processing wallet payment...');
+                    const deductRes = await fetch(`${baseUrl}/payments/deduct`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: user.uid,
+                            amount: selectedWorkerPrice,
+                            description: `Payment for ${serviceType} (Booking #${response.id})`,
+                            bookingId: response.id
+                        })
+                    });
+                    const deductData = await deductRes.json();
+                    if (!deductData.success) {
+                        console.warn('Wallet deduction failed after booking creation:', deductData.error);
+                    } else {
+                        console.log('Wallet payment processed successfully');
+                    }
+                }
+
+                // 3. Update Local Storage
+                console.log('Step 3: Updating local storage...');
+                let bookings = Storage.get('karyasetu_bookings') || [];
+                bookings.unshift({
+                    id: response.id,
+                    service: newBooking.serviceType,
+                    worker: selectedWorker || 'Assigning soon...',
+                    date: newBooking.date,
+                    time: newBooking.time,
+                    address: newBooking.address,
+                    status: 'Pending',
+                    price: selectedWorkerPrice
+                });
+                Storage.set('karyasetu_bookings', bookings);
+                console.log('Local storage updated successfully');
+
+                alert('Booking Successful!');
+                window.location.href = '/pages/dashboard/customer/customer-dashboard.html';
+            } catch (error) {
+                console.error('Booking failed:', error);
+                alert('Booking failed. Please try again.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Set default date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('booking-date').value = tomorrow.toISOString().split('T')[0];
+
+        // --- Dynamic Worker Fetching ---
+        async function fetchWorkers(service) {
+            try {
+                // Map complex service names to simple skills if needed
+                // e.g. "Salon for Men" -> "Salon"
+                let skillQuery = service;
+                // Standardized Mapping
+                const mapping = {
+                    'Plumbing': 'Plumber',
+                    'Electrical': 'Electrician',
+                    'Carpentry': 'Carpenter',
+                    'Painting': 'Painter',
+                    'Home Cleaning': 'Home Cleaning',
+                    'Cleaning': 'Home Cleaning',
+                    'AC Repair': 'AC Repair',
+                    'AC Technician': 'AC Repair',
+                    'Gardening': 'Gardening',
+                    'Gardener': 'Gardening',
+                    'Appliances': 'Appliances',
+                    'Appliance Repair': 'Appliances',
+                    'Pest Control': 'Pest Control',
+                    'Beauty & Spa': 'Beauty & Spa',
+                    'Beauty': 'Beauty & Spa',
+                    'Packers & Movers': 'Packers & Movers',
+                    'Packers': 'Packers & Movers',
+                    'RO & Water': 'RO & Water',
+                    'RO Service': 'RO & Water',
+                    'Home Security': 'Home Security',
+                    'Security': 'Home Security',
+                    'Interior Design': 'Interior Design',
+                    'Interior': 'Interior Design',
+                    'Mechanic': 'Mechanic'
+                };
+
+                if (mapping[service]) {
+                    skillQuery = mapping[service];
+                } else if (service.includes('Salon')) {
+                    skillQuery = 'Beauty & Spa';
+                } else {
+                    // Fallback: If no direct mapping, try to use the service name as is 
+                    // (Backend now handles case-insensitivity)
+                    skillQuery = service;
+                }
+
+                // Note: The seeded data uses 'Carpenter', 'Painter', 'Plumber' etc.
+                // But the booking service types are nouns (Carpentry).
+                // This mapping fixes the 'No workers found' error.
+
+                console.log(`Fetching workers for skill: ${skillQuery}`);
+                const workers = await API.workers.getAll({ category: skillQuery });
+                console.log('Fetched workers:', workers);
+                return workers;
+            } catch (error) {
+                console.error("Failed to fetch workers:", error);
+                return [];
+            }
+        }
+
+        async function renderWorkers() {
+            const container = document.getElementById('worker-list');
+            if (!container) return;
+
+            container.innerHTML = '<div style="text-align:center; padding:2rem; color:white;">Loading professionals...</div>';
+
+            // Attempt to fetch real workers
+            let workers = await fetchWorkers(serviceType);
+            allFetchedWorkers = workers; // Store globally for the modal
+
+            // FALLBACK TO MOCK if no real workers found (so the UI isn't empty for demo)
+            // Ideally, we'd just show "No workers found", but for smooth demo flow:
+            if (!workers || workers.length === 0) {
+                console.log('No real workers found, showing seeded/mock list for demo purposes if strictly needed locally.');
+                // For now, let's communicate "No workers found" is better than confusing mocks
+                // But the user specifically asked for "White" (their worker) to be visible.
+                // So if we find nothing, we show "No professionals found for this category".
+            }
+
+            if (!workers || workers.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:2rem; background:rgba(255,255,255,0.05); border-radius:12px;">
+                        <i class="fas fa-users-slash" style="font-size:2rem; color:var(--text-muted); margin-bottom:1rem;"></i>
+                        <p>No professionals found specifically for <strong>${serviceType}</strong>.</p>
+                        <p style="font-size:0.8rem; margin-top:0.5rem; color:var(--text-muted);">Try a different category or check back later.</p>
+                        <!-- Debug Hint -->
+                        <p style="font-size:0.7rem; color:#555; margin-top:1rem;">Debug: Ensure your worker profile has this skill listed.</p>
+                    </div>`;
+                return;
+            }
+
+            const preSelectedWorkerId = Storage.get('karyasetu_selected_worker_id');
+
+            container.innerHTML = workers.map(w => {
+                // Map Backend Data to UI
+                const profile = w.profile || {};
+                const name = w.name || 'Unknown Pro';
+                const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const rating = w.rating_avg || (4.0 + Math.random()).toFixed(1);
+                const reviews = w.stats?.total_jobs || Math.floor(Math.random() * 50) + 1;
+                const price = w.base_price || 350;
+                const isSelected = w.uid === preSelectedWorkerId;
+
+                if (isSelected) {
+                    selectedWorker = name;
+                    selectedWorkerId = w.uid;
+                    selectedWorkerPrice = price;
+                }
+
+                const badge = w.experience_years ? (w.experience_years + ' Years Exp') : 'Professional';
+                const isTrackable = !!w.location;
+
+                return `
+                <div class="worker-selection-card ${isSelected ? 'selected' : ''}" onclick="selectWorker(this, '${name}', ${price}, '${w.uid}')">
+                    <div class="card-avatar">${initials}</div>
+                    <div class="card-info">
+                        <div class="card-header">
+                            <h4 class="worker-name">${name}</h4>
+                            <div class="worker-price">₹${price}<span>/hr</span></div>
+                        </div>
+                        <div class="worker-meta">
+                            <span>${badge}</span>
+                            <span>•</span>
+                            <span>${rating} <i class="fas fa-star rating-star"></i></span>
+                            <span>(${reviews} jobs)</span>
+                        </div>
+                        <div class="tracking-status ${isTrackable ? 'tracking-live' : 'tracking-unavailable'}">
+                            <i class="fas ${isTrackable ? 'fa-map-marker-alt' : 'fa-map-marker-slash'}"></i>
+                            ${isTrackable ? 'Live Tracking Available' : 'Tracking Unavailable'}
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff;" onclick="event.stopPropagation(); showWorkerProfile('${w.uid}')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // Initial Render
+        renderWorkers();
+        fetchWalletBalance();
+
+
+
+        let allFetchedWorkers = []; // To store for modal lookup
+
+        async function showWorkerProfile(uid) {
+            const worker = allFetchedWorkers.find(w => w.uid === uid);
+            if (!worker) return;
+
+            const modal = document.getElementById('worker-profile-modal');
+            const profile = worker.profile || {};
+            const name = worker.name || 'Professional';
+            const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+            document.getElementById('modal-avatar').textContent = initials;
+            document.getElementById('modal-name').textContent = name;
+            document.getElementById('modal-category').textContent = `${worker.category || 'Specialist'} • ${profile.experience || 'Experienced'} Pro`;
+            document.getElementById('modal-rating').innerHTML = `<i class="fas fa-star"></i> ${worker.rating_avg || 4.5} (${Math.floor(Math.random() * 50) + 10} Reviews)`;
+            document.getElementById('modal-rate').textContent = `₹${profile.hourlyRate || 350}/hr`;
+            // Priority: Explicit Address -> Formatted Location (if string) -> Default
+            let locationDisplay = 'Maniyan, Dholpur'; // Default
+            if (profile.address) {
+                locationDisplay = profile.address;
+            } else if (profile.location && typeof profile.location === 'string') {
+                locationDisplay = profile.location;
+            }
+            document.getElementById('modal-location').textContent = locationDisplay;
+            document.getElementById('modal-bio').textContent = profile.bio || worker.bio || "No detailed bio provided by this professional yet.";
+
+            const skillsContainer = document.getElementById('modal-skills');
+            const skills = profile.skills || (worker.category ? [worker.category] : ['Service Provider']);
+            skillsContainer.innerHTML = skills.map(s => `<span class="skill-tag">${s}</span>`).join('');
+
+            document.getElementById('modal-book-btn').onclick = () => {
+                // Find the card in the list to select it
+                const cards = document.querySelectorAll('.worker-selection-card');
+                cards.forEach(c => {
+                    if (c.innerHTML.includes(name)) {
+                        selectWorker(c, name, profile.hourlyRate || 350, uid);
+                    }
+                });
+                closeWorkerProfile();
+                goToStep(3); // Go to contact step
+            };
+
+            modal.classList.add('active');
+        }
+        // Expose to window for inline onclick handlers
+        window.showWorkerProfile = showWorkerProfile;
+
+        function closeWorkerProfile() {
+            document.getElementById('worker-profile-modal').classList.remove('active');
+        }
+        window.closeWorkerProfile = closeWorkerProfile;
+    </script>
+</body>
+
+</html>

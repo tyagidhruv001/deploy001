@@ -2,11 +2,11 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "/backend/server.js"
+            "destination": "/backend/src/server.js"
         }
     ],
     "functions": {
-        "backend/server.js": {
+        "backend/src/server.js": {
             "memory": 1024,
             "maxDuration": 10
         }

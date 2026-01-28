@@ -1,0 +1,398 @@
+--- Testing Firestore Worker Data ---
+Total Workers in collection: 66
+- Worker ID: B8Nz7WPAMHUh32ysKy3KGBYH2f62
+  Name: N/A
+  Category: N/A
+  Location: "mathura"
+  Online: undefined
+--------------------------
+- Worker ID: Bqv3UnqnDLbZmr4kkFZl8R0VDIc2
+  Name: N/A
+  Category: N/A
+  Location: "mathura"
+  Online: undefined
+--------------------------
+- Worker ID: OIYQ4kNrRlTfMck4c0mc5EY9x0F3
+  Name: N/A
+  Category: N/A
+  Location: "aaa"
+  Online: undefined
+--------------------------
+- Worker ID: hydWFKPauUaDO95KzyRZvax2Tqw2
+  Name: N/A
+  Category: N/A
+  Location: "mathura"
+  Online: undefined
+--------------------------
+- Worker ID: j7eITVVsQhdgolPsnDt9BDanN1H2
+  Name: N/A
+  Category: N/A
+  Location: "mathura"
+  Online: undefined
+--------------------------
+- Worker ID: nS8WdY3o1CgJnBNKJHx2FSdAudv1
+  Name: N/A
+  Category: N/A
+  Location: {"lat":27.60789715343437,"lng":77.59038561145651,"timestamp":"2026-01-27T13:51:25.100Z","accuracy":67}
+  Online: undefined
+--------------------------
+- Worker ID: worker_ac_repair_1
+  Name: Sundeep Gill
+  Category: ac repair
+  Location: {"lat":26.771980594794165,"lng":77.93557447556779}
+  Online: true
+--------------------------
+- Worker ID: worker_ac_repair_2
+  Name: Kaveri Jha
+  Category: ac repair
+  Location: {"lat":26.733162748743567,"lng":77.89706202248614}
+  Online: true
+--------------------------
+- Worker ID: worker_appliances_1
+  Name: Yousuf Khan
+  Category: appliances
+  Location: {"lat":26.79059527881521,"lng":77.84666134206056}
+  Online: true
+--------------------------
+- Worker ID: worker_appliances_2
+  Name: Ishani Bose
+  Category: appliances
+  Location: {"lat":26.713639023347582,"lng":77.88904594941644}
+  Online: true
+--------------------------
+- Worker ID: worker_beauty_&_spa_1
+  Name: Siddharth Shishodia
+  Category: beauty & spa
+  Location: {"lat":26.73780065394075,"lng":77.86374661004444}
+  Online: true
+--------------------------
+- Worker ID: worker_beauty_&_spa_2
+  Name: Rachna Roy
+  Category: beauty & spa
+  Location: {"lat":26.740321507254016,"lng":77.86786213187176}
+  Online: true
+--------------------------
+- Worker ID: worker_carpenter_1
+  Name: Vikram Rathore
+  Category: carpenter
+  Location: {"lat":26.809252179098262,"lng":77.91067051551079}
+  Online: true
+--------------------------
+- Worker ID: worker_carpenter_2
+  Name: Pooja Reddy
+  Category: carpenter
+  Location: {"lat":26.746835630641577,"lng":77.90141840978036}
+  Online: true
+--------------------------
+- Worker ID: worker_electrician_1
+  Name: Amit Patel
+  Category: electrician
+  Location: {"lat":26.752856887843446,"lng":77.88120474258811}
+  Online: true
+--------------------------
+- Worker ID: worker_electrician_2
+  Name: Anjali Mani
+  Category: electrician
+  Location: {"lat":26.807903418910737,"lng":77.84332467157192}
+  Online: true
+--------------------------
+- Worker ID: worker_gardening_1
+  Name: Rohan Mehra
+  Category: gardening
+  Location: {"lat":26.728184408141647,"lng":77.88430450462789}
+  Online: true
+--------------------------
+- Worker ID: worker_gardening_2
+  Name: Tanvi Shah
+  Category: gardening
+  Location: {"lat":26.798862249858303,"lng":77.87843774420813}
+  Online: true
+--------------------------
+- Worker ID: worker_home_cleaning_1
+  Name: Ravi Teja
+  Category: home cleaning
+  Location: {"lat":26.750451851338422,"lng":77.92461661025949}
+  Online: true
+--------------------------
+- Worker ID: worker_home_cleaning_2
+  Name: Meera Nair
+  Category: home cleaning
+  Location: {"lat":26.756914989436858,"lng":77.9175875961007}
+  Online: true
+--------------------------
+- Worker ID: worker_home_security_1
+  Name: Manish Malhotra
+  Category: home security
+  Location: {"lat":26.768334053842537,"lng":77.84796342634664}
+  Online: true
+--------------------------
+- Worker ID: worker_home_security_2
+  Name: Kiran Bedi
+  Category: home security
+  Location: {"lat":26.807406654878214,"lng":77.8932870517104}
+  Online: true
+--------------------------
+- Worker ID: worker_interior_design_1
+  Name: Sanjay Dutt
+  Category: interior design
+  Location: {"lat":26.748602996611645,"lng":77.87836799384804}
+  Online: true
+--------------------------
+- Worker ID: worker_interior_design_2
+  Name: Juhi Chawla
+  Category: interior design
+  Location: {"lat":26.765620233206086,"lng":77.88388968558368}
+  Online: true
+--------------------------
+- Worker ID: worker_mechanic_1
+  Name: Arjun Singh
+  Category: mechanic
+  Location: {"lat":26.805102546923425,"lng":77.90641665180786}
+  Online: true
+--------------------------
+- Worker ID: worker_mechanic_2
+  Name: Priya Sharma
+  Category: mechanic
+  Location: {"lat":26.761729595229166,"lng":77.9028785040314}
+  Online: true
+--------------------------
+- Worker ID: worker_packers_&_movers_1
+  Name: Harish Rawat
+  Category: packers & movers
+  Location: {"lat":26.73549856689757,"lng":77.88054580420938}
+  Online: true
+--------------------------
+- Worker ID: worker_packers_&_movers_2
+  Name: Neha Kapoor
+  Category: packers & movers
+  Location: {"lat":26.730793508619,"lng":77.88787899944194}
+  Online: true
+--------------------------
+- Worker ID: worker_painter_1
+  Name: Deepak Kumar
+  Category: painter
+  Location: {"lat":26.72598877598194,"lng":77.88343275966807}
+  Online: true
+--------------------------
+- Worker ID: worker_painter_2
+  Name: Sonia Das
+  Category: painter
+  Location: {"lat":26.803245874306597,"lng":77.87678228656124}
+  Online: true
+--------------------------
+- Worker ID: worker_pest_control_1
+  Name: Gaurav Joshi
+  Category: pest control
+  Location: {"lat":26.721054361153445,"lng":77.85820180163618}
+  Online: true
+--------------------------
+- Worker ID: worker_pest_control_2
+  Name: Divya Pillai
+  Category: pest control
+  Location: {"lat":26.723676993416532,"lng":77.89121065754372}
+  Online: true
+--------------------------
+- Worker ID: worker_plumber_1
+  Name: Rahul Verma
+  Category: plumber
+  Location: {"lat":26.738174459689393,"lng":77.87628315124667}
+  Online: true
+--------------------------
+- Worker ID: worker_plumber_2
+  Name: Sneha Gupta
+  Category: plumber
+  Location: {"lat":26.760208965556465,"lng":77.9146022089394}
+  Online: true
+--------------------------
+- Worker ID: worker_ro_&_water_1
+  Name: Abhishek Tiwari
+  Category: ro & water
+  Location: {"lat":26.77491273240209,"lng":77.925454787737}
+  Online: true
+--------------------------
+- Worker ID: worker_ro_&_water_2
+  Name: Ritu Chauhan
+  Category: ro & water
+  Location: {"lat":26.776190768920436,"lng":77.92240149874617}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_001
+  Name: Rajesh Kumar
+  Category: plumber
+  Location: {"lat":27.157086755192292,"lng":78.01829474468029}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_002
+  Name: Suresh Patel
+  Category: electrician
+  Location: {"lat":27.161285575865474,"lng":78.01323158270229}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_003
+  Name: Amit Singh
+  Category: carpenter
+  Location: {"lat":27.158564974872565,"lng":77.98455678186741}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_004
+  Name: Priya Sharma
+  Category: painter
+  Location: {"lat":27.184673568289316,"lng":78.01076302451186}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_005
+  Name: Vikram Malhotra
+  Category: home cleaning
+  Location: {"lat":27.171155798970847,"lng":78.01678325120825}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_006
+  Name: Anjali Gupta
+  Category: ac repair
+  Location: {"lat":27.182005482987503,"lng":78.00442599176658}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_007
+  Name: Deepak Verma
+  Category: gardening
+  Location: {"lat":27.159222697038704,"lng":78.00413607071012}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_008
+  Name: Meera Chauhan
+  Category: appliances
+  Location: {"lat":27.169513376339008,"lng":78.02770808435568}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_009
+  Name: Rahul Tiwari
+  Category: pest control
+  Location: {"lat":27.163204148749404,"lng":78.0008401389185}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_010
+  Name: Sneha Das
+  Category: beauty & spa
+  Location: {"lat":27.190364843466366,"lng":78.01357934407321}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_011
+  Name: Rajesh Kumar
+  Category: packers & movers
+  Location: {"lat":19.07749952202383,"lng":72.8923978345226}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_012
+  Name: Suresh Patel
+  Category: ro & water
+  Location: {"lat":19.08917473393694,"lng":72.86319435993636}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_013
+  Name: Amit Singh
+  Category: home security
+  Location: {"lat":19.058197385103675,"lng":72.89375319427694}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_014
+  Name: Priya Sharma
+  Category: interior design
+  Location: {"lat":19.08766659629164,"lng":72.8992936243985}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_015
+  Name: Vikram Malhotra
+  Category: mechanic
+  Location: {"lat":19.06580086224147,"lng":72.89218602549447}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_016
+  Name: Anjali Gupta
+  Category: plumber
+  Location: {"lat":19.072229001355467,"lng":72.85581407319215}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_017
+  Name: Deepak Verma
+  Category: electrician
+  Location: {"lat":19.072307208055296,"lng":72.88038557244468}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_018
+  Name: Meera Chauhan
+  Category: carpenter
+  Location: {"lat":19.098725998459706,"lng":72.90182635058785}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_019
+  Name: Rahul Tiwari
+  Category: painter
+  Location: {"lat":19.06185209459675,"lng":72.86208259164987}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_020
+  Name: Sneha Das
+  Category: home cleaning
+  Location: {"lat":19.084392773356377,"lng":72.89300209085273}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_021
+  Name: Rajesh Kumar
+  Category: ac repair
+  Location: {"lat":28.637074442963776,"lng":77.21258571270661}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_022
+  Name: Suresh Patel
+  Category: gardening
+  Location: {"lat":28.599840889646796,"lng":77.2282015683984}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_023
+  Name: Amit Singh
+  Category: appliances
+  Location: {"lat":28.592165123239823,"lng":77.22336629529515}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_024
+  Name: Priya Sharma
+  Category: pest control
+  Location: {"lat":28.611068707333256,"lng":77.20531389960583}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_025
+  Name: Vikram Malhotra
+  Category: beauty & spa
+  Location: {"lat":28.598995621973206,"lng":77.22591500786436}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_026
+  Name: Anjali Gupta
+  Category: packers & movers
+  Location: {"lat":28.614292677591425,"lng":77.20557777582009}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_027
+  Name: Deepak Verma
+  Category: ro & water
+  Location: {"lat":28.602996225553436,"lng":77.21363597742224}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_028
+  Name: Meera Chauhan
+  Category: home security
+  Location: {"lat":28.59949097233952,"lng":77.22561768001675}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_029
+  Name: Rahul Tiwari
+  Category: interior design
+  Location: {"lat":28.624425506098294,"lng":77.2295495631148}
+  Online: true
+--------------------------
+- Worker ID: worker_seed_030
+  Name: Sneha Das
+  Category: mechanic
+  Location: {"lat":28.615307936102088,"lng":77.2025176875674}
+  Online: true
+--------------------------
