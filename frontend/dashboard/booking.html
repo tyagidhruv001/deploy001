@@ -633,8 +633,7 @@
             const user = Storage.get('karyasetu_user');
             if (!user) return;
             try {
-                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const baseUrl = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+                const baseUrl = API_BASE_URL;
                 const response = await fetch(`${baseUrl}/payments/balance/${user.uid}`);
                 const data = await response.json();
                 if (data.success) {
@@ -747,8 +746,7 @@
                 const response = await API.bookings.create(bookingData);
                 console.log('Booking created in Firestore:', response);
 
-                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const baseUrl = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+                const baseUrl = API_BASE_URL;
 
                 // 2. Deduct from wallet if wallet payment
                 if (paymentMethod === 'wallet') {

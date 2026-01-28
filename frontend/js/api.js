@@ -1,5 +1,7 @@
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+// If deployed on Cloudflare, replace VERCEL_BACKEND_URL with your Vercel deployment URL
+const VERCEL_BACKEND_URL = ''; // e.g. 'https://your-app.vercel.app'
+const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : (VERCEL_BACKEND_URL ? VERCEL_BACKEND_URL + '/api' : window.location.origin + '/api');
 
 const API = {
     // Auth endpoints

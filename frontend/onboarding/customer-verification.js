@@ -2,7 +2,8 @@ import { auth, db } from '../config.js';
 import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+const VERCEL_BACKEND_URL = ''; // Update this for production
+const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : (VERCEL_BACKEND_URL ? VERCEL_BACKEND_URL + '/api' : window.location.origin + '/api');
 
 class CustomerVerificationFlow {
     constructor() {
