@@ -1,5 +1,6 @@
 {
   "name": "frontend",
+<<<<<<< HEAD
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,5 +11,21 @@
   },
   "devDependencies": {
     "vite": "^5.0.0"
+=======
+  "version": "1.0.0",
+  "description": "A comprehensive web platform connecting customers with verified blue-collar workers across various service categories.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^7.3.1"
+>>>>>>> vengeance2.0
   }
 }

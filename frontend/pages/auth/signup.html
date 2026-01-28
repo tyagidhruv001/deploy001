@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign up for KaryaSetu - Your Trusted Blue-Collar Service Platform">
+    <title>Sign Up - KaryaSetu</title>
+
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/pages/auth/auth.css">
+</head>
+
+<body>
+    <div class="auth-container gradient-mesh">
+        <div class="auth-card card-glass">
+            <div class="auth-header">
+                <a href="/index.html" class="back-link">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Back
+                </a>
+
+                <div class="logo">
+                    <span class="logo-icon">🔧</span>
+                    <span class="logo-text">KaryaSetu</span>
+                </div>
+
+                <h1>Create Account</h1>
+                <p>Join KaryaSetu today</p>
+            </div>
+
+            <form class="auth-form" id="signupForm">
+                <div class="alert alert-error hidden" id="errorAlert"></div>
+
+                <div class="input-group">
+                    <label class="input-label" for="name">Full Name</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="name" class="input-field" placeholder="Enter your full name" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="phone">Phone Number</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">📱</span>
+                        <input type="tel" id="phone" class="input-field" placeholder="+91 98765 43210"
+                            pattern="[0-9]{10}" required>
+                    </div>
+                    <!-- <span class="input-helper">We'll send you an OTP for verification</span> -->
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="email">Email</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">📬</span>
+                        <input type="email" id="email" class="input-field" placeholder="your.email@example.com">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="password">Password</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">🔐</span>
+                        <input type="password" id="password" class="input-field" placeholder="Create a strong password"
+                            minlength="6" required>
+                        <button type="button" class="toggle-password" id="togglePassword">
+                            <span id="eyeIcon">👁️</span>
+                        </button>
+                    </div>
+                    <span class="input-helper">Minimum 6 characters</span>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="terms" required>
+                        <span>I agree to the <a href="#" class="link">Terms & Conditions</a></span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" id="signupBtn">
+                    <span id="signupBtnText">Create Account</span>
+                    <div class="spinner spinner-sm hidden" id="signupSpinner"></div>
+                </button>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="login.html" class="link">Login</a></p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Background shapes -->
+        <div class="auth-bg-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/api.js"></script>
+    <script type="module" src="/js/utils.js"></script>
+    <script type="module" src="/pages/auth/auth.js"></script>
+    <script type="module">
+        // Check for role
+        const urlParams = new URLSearchParams(window.location.search);
+        let role = urlParams.get('role') || Storage.get('karyasetu_user_role');
+
+        if (!role) {
+            window.location.href = '/pages/auth/role-select.html?mode=signup';
+        } else {
+            // Update UI to show role
+            const roleText = role === 'customer' ? 'Customer' : 'Worker';
+            const titleElement = document.querySelector('h1');
+            if (titleElement) titleElement.textContent = `Sign Up as ${roleText}`;
+            Storage.set('karyasetu_user_role', role);
+        }
+
+        // Signup form handler
+        document.getElementById('signupForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const signupBtn = document.getElementById('signupBtn');
+            const signupBtnText = document.getElementById('signupBtnText');
+            const signupSpinner = document.getElementById('signupSpinner');
+            const errorAlert = document.getElementById('errorAlert');
+
+            // Show loading
+            signupBtnText.classList.add('hidden');
+            signupSpinner.classList.remove('hidden');
+            signupBtn.disabled = true;
+            errorAlert.classList.add('hidden');
+
+            try {
+                // API Call
+                const response = await apiFetch('/auth/signup', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name,
+                        phone: phone.startsWith('+') ? phone.replace(/\s+/g, '') : `+91${phone.replace(/\s+/g, '')}`,
+                        email,
+                        password,
+                        role
+                    })
+                });
+
+                // Store user data from response
+                const userData = {
+                    uid: response.uid,
+                    name,
+                    email,
+                    phone,
+                    role: role, // FORCE OVERRIDE: Ensure session matches selected role
+                    loggedIn: true,
+                    signupTime: new Date().toISOString()
+                };
+
+                Storage.set('karyasetu_user', userData);
+                Storage.set('karyasetu_user_role', role);
+
+                // Redirect based on role
+                if (role === 'customer') {
+                    window.location.href = '/pages/onboarding/customer-verification.html';
+                } else {
+                    window.location.href = '/pages/onboarding/worker-verification.html';
+                }
+
+            } catch (error) {
+                console.error("Signup Error:", error);
+                errorAlert.textContent = error.message || 'Signup failed. Please try again.';
+                errorAlert.classList.remove('hidden');
+
+                signupBtnText.classList.remove('hidden');
+                signupSpinner.classList.add('hidden');
+                signupBtn.disabled = false;
+            }
+        });
+
+        // Toggle password visibility
+        document.getElementById('togglePassword')?.addEventListener('click', () => {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = '👁️‍🗨️';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = '👁️';
+            }
+        });
+    </script>
+</body>
+
+</html>
