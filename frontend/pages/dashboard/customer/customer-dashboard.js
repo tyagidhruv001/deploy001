@@ -1162,20 +1162,65 @@ window.removeProfilePic = function () {
     }
 };
 
-function renderProfile() {
+async function renderProfile() {
     const container = getEl('profile-layout');
     if (!container) return;
-    const user = Storage.get(STORAGE_KEYS.USER) || {};
+
+    let user = Storage.get(STORAGE_KEYS.USER) || {};
+
+    // 1. Fetch Fresh Data (if online)
+    if (user.uid) {
+        try {
+            // Show loading opacity or indicator if needed, but for now we'll just update in place
+            const freshProfile = await API.auth.getProfile(user.uid);
+
+            if (freshProfile) {
+                // Merge data
+                user = { ...user, ...freshProfile };
+
+                // Normalization: Ensure profilePic exists if photoURL is present
+                if (freshProfile.photoURL) user.profilePic = freshProfile.photoURL;
+                if (freshProfile.profile_pic) user.profilePic = freshProfile.profile_pic;
+
+                // Normalization: Address
+                // If backend returns address as string, we might need to objectify it for the UI fields
+                // OR adapt the UI to show the string.
+                if (typeof freshProfile.address === 'string') {
+                    // Temporarily store it as a 'fullAddress' string if it's not an object
+                    if (!user.address || typeof user.address !== 'object') {
+                        user.address = {
+                            house: freshProfile.address, // Put full string here for now
+                            landmark: '',
+                            city: freshProfile.location || '',
+                            pincode: freshProfile.pincode || ''
+                        };
+                    }
+                }
+
+                // Normalization: Joined Date
+                if (freshProfile.createdAt || freshProfile.metadata?.creationTime) {
+                    const d = new Date(freshProfile.createdAt || freshProfile.metadata?.creationTime);
+                    user.joinedDate = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                }
+
+                Storage.set(STORAGE_KEYS.USER, user);
+                // Update header info too
+                updateUIWithUserData(user);
+            }
+        } catch (e) {
+            console.warn('Background profile fetch failed, using cached data:', e);
+        }
+    }
 
     // Profile Pic Logic
     let avatarSrc = user.profilePic || '';
     let avatarContent = avatarSrc
-        ? `<img src="${avatarSrc}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--neon-blue);">`
+        ? `<img src="${avatarSrc}" onerror="this.src='../../assets/images/default-avatar.png'" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--neon-blue);">`
         : `<div style="width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white;">${user.name ? user.name[0] : 'U'}</div>`;
 
     container.innerHTML = `
         <div class="stat-card" style="max-width: 900px; margin: 0 auto;">
-            <div style="display: flex; align-items: center; gap: 2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 2rem; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
                 <!-- Avatar Section -->
                 <div style="position: relative; width: 100px; height: 100px; cursor: pointer; flex-shrink: 0;" onclick="document.getElementById('profile-upload-main').click()">
                     ${avatarContent}
@@ -1186,19 +1231,19 @@ function renderProfile() {
                 <input type="file" id="profile-upload-main" hidden accept="image/*">
 
                 <!-- Name Section -->
-                <div>
+                <div style="flex: 1;">
                     <h2 style="margin: 0; font-size: 1.8rem;">${user.name || 'User Name'}</h2>
-                    <p class="text-muted" style="margin: 0.25rem 0 0;">Customer Account • ${user.reward_points || user.profile?.reward_points || 0} Reward Points</p>
+                    <p class="text-muted" style="margin: 0.25rem 0 0;">Customer Account • ${user.reward_points || 0} Reward Points</p>
                     ${user.profilePic ? `<button onclick="removeProfilePic()" class="btn btn-sm btn-ghost" style="color: var(--neon-pink); margin-top: 0.5rem; padding: 0; font-size: 0.8rem;"><i class="fas fa-trash-alt"></i> Remove Photo</button>` : ''}
                 </div>
             </div>
 
             <div style="margin-bottom: 2rem;">
                 <label class="text-muted" style="font-size: 0.8rem; display: block; margin-bottom: 0.5rem;">BIO / ABOUT YOU</label>
-                <textarea id="edit-bio" disabled style="width: 100%; min-height: 80px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 8px; color: #fff; padding: 10px; font-size: 0.95rem; resize: vertical; outline: none;">${user.bio || user.profile?.bio || 'Tell us a bit about yourself...'}</textarea>
+                <textarea id="edit-bio" disabled style="width: 100%; min-height: 80px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 8px; color: #fff; padding: 10px; font-size: 0.95rem; resize: vertical; outline: none;">${user.bio || 'Tell us a bit about yourself...'}</textarea>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
                 <div>
                     <label class="text-muted" style="font-size: 0.8rem;">FULL NAME</label>
                     <input type="text" id="edit-name" value="${user.name || ''}" disabled 
@@ -1221,11 +1266,11 @@ function renderProfile() {
                 </div>
             </div>
             
-            <h3 style="margin-top: 2rem; margin-bottom: 1.5rem;">Saved Address</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <h3 style="margin-top: 2rem; margin-bottom: 1.5rem;">Address Info</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
                 <div>
-                    <label class="text-muted" style="font-size: 0.8rem;">HOUSE / FLAT NO.</label>
-                    <input type="text" id="edit-house" value="${user.address?.house || ''}" disabled 
+                    <label class="text-muted" style="font-size: 0.8rem;">ADDRESS / FLAT NO.</label>
+                    <input type="text" id="edit-house" value="${user.address?.house || user.address || ''}" disabled
                             style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--glass-border); color:#fff; padding:5px 0; font-size:1.1rem;">
                 </div>
                 <div>
@@ -1235,12 +1280,12 @@ function renderProfile() {
                 </div>
                 <div>
                     <label class="text-muted" style="font-size: 0.8rem;">CITY / STATE</label>
-                    <input type="text" id="edit-city" value="${user.address?.city || ''}" disabled 
+                    <input type="text" id="edit-city" value="${user.address?.city || user.location || ''}" disabled
                             style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--glass-border); color:#fff; padding:5px 0; font-size:1.1rem;">
                 </div>
                 <div>
                     <label class="text-muted" style="font-size: 0.8rem;">PINCODE</label>
-                    <input type="text" id="edit-pincode" value="${user.address?.pincode || ''}" disabled 
+                    <input type="text" id="edit-pincode" value="${user.address?.pincode || user.pincode || ''}" disabled
                             style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--glass-border); color:#fff; padding:5px 0; font-size:1.1rem;">
                 </div>
             </div>

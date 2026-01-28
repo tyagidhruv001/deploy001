@@ -53,8 +53,27 @@ exports.getUser = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        res.status(200).json(userDoc.data());
+        let userData = userDoc.data();
+
+        // Fetch additional data based on role
+        if (userData.role === 'customer') {
+            const customerDoc = await db.collection('customers').doc(uid).get();
+            if (customerDoc.exists) {
+                // Merge customer details (address, verification, etc.)
+                // We prefer customerDoc fields if they exist
+                userData = { ...userData, ...customerDoc.data() };
+            }
+        } else if (userData.role === 'worker') {
+            const workerDoc = await db.collection('workers').doc(uid).get();
+            if (workerDoc.exists) {
+                // Merge worker details
+                userData = { ...userData, ...workerDoc.data() };
+            }
+        }
+
+        res.status(200).json(userData);
     } catch (error) {
+        console.error('Error fetching user profile:', error);
         res.status(500).json({ error: error.message });
     }
 };

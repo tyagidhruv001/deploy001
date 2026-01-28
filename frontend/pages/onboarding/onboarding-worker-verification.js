@@ -3,6 +3,8 @@ import { apiFetch } from '../../js/api.js';
 import { Storage } from '../../js/utils.js';
 import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
+console.log('Worker Verification Script Loaded');
+
 
 class WorkerVerificationFlow {
     constructor() {
