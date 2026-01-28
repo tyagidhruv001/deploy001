@@ -3,18 +3,20 @@
 (function () {
     'use strict';
 
-    const userRole = localStorage.getItem('karyasetu_user_role');
+    const userRole = Storage.get('karyasetu_user_role');
     const userProfile = Storage.get('karyasetu_user_profile');
 
     // Check if user has completed onboarding
     if (!userProfile) {
         // Redirect to appropriate onboarding page
         if (userRole === 'customer') {
-            window.location.href = '/onboarding/customer-verification.html';
+            window.location.href = '/pages/onboarding/customer-verification.html';
         } else if (userRole === 'worker') {
-            window.location.href = '/onboarding/worker-verification.html';
+            window.location.href = '/pages/onboarding/worker-verification.html';
         } else {
-            window.location.href = '/auth/role-select.html';
+            // If No role found at all, they shouldn't be here
+            console.warn('[ROLE-GUARD] No role found, redirecting to role select');
+            window.location.href = '/pages/auth/role-select.html';
         }
     }
 
