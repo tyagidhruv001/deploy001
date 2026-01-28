@@ -3,8 +3,6 @@
 // Additional Pages and Functionality
 // ============================================
 
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard-part2.js
-=======
 // Imports
 import { API, apiFetch } from '../../../js/api.js';
 import { Storage } from '../../../js/utils.js';
@@ -20,17 +18,12 @@ const getDashboardData = () => window.dashboardData || {
   performance: { satisfaction: 0, onTime: 0, responseRate: 0, repeatCustomers: 0 }
 };
 
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard-part2.js
 // ============================================
 // AVAILABILITY PAGE
 // ============================================
 
 function getAvailabilityPage() {
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard-part2.js
-  const availability = Storage.get('worker_availability') || {
-=======
   const defaultAvailability = {
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard-part2.js
     isOnline: false,
     workingHours: {
       monday: { enabled: true, start: '09:00', end: '17:00' },
@@ -38,10 +31,6 @@ function getAvailabilityPage() {
       wednesday: { enabled: true, start: '09:00', end: '17:00' },
       thursday: { enabled: true, start: '09:00', end: '17:00' },
       friday: { enabled: true, start: '09:00', end: '17:00' },
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard-part2.js
-      saturday: { enabled: true, start: '10:00', end: '14:00' },
-      sunday: { enabled: false, start: '00:00', end: '00:00' }
-=======
       saturday: { enabled: false, start: '10:00', end: '14:00' },
       sunday: { enabled: false, start: '10:00', end: '14:00' }
     }
@@ -49,17 +38,6 @@ function getAvailabilityPage() {
 
   const availability = Storage.get('worker_availability') || defaultAvailability;
   if (!availability.workingHours) availability.workingHours = defaultAvailability.workingHours;
-
-  // Calculate total hours
-  let totalHours = 0;
-  Object.values(availability.workingHours).forEach(h => {
-    if (h && h.enabled && h.start && h.end) {
-      const start = new Date(`2000-01-01T${h.start}`);
-      const end = new Date(`2000-01-01T${h.end}`);
-      totalHours += (end - start) / 3600000;
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard-part2.js
-    }
-  };
 
   return `
     <div class="page-header">
@@ -78,12 +56,6 @@ function getAvailabilityPage() {
   `;
 }
 
-// ============================================
-// EARNINGS PAGE
-// ============================================
-
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard-part2.js
-=======
 // ============================================
 // EARNINGS PAGE
 // ============================================
@@ -203,8 +175,6 @@ async function fetchAndRenderEarningsPage() {
     // Initialize Chart
     if (typeof initializeEarningsChart === 'function') {
       setTimeout(() => initializeEarningsChart(transactions), 100);
-    } else {
-      console.warn('initializeEarningsChart not defined, skipping chart init');
     }
 
   } catch (err) {
@@ -220,9 +190,8 @@ async function fetchAndRenderEarningsPage() {
   }
 }
 
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard-part2.js
 function getEarningsPage() {
-  const earnings = dashboardData.earnings || { today: 0, week: 0, month: 0, total: 0 };
+  const earnings = getDashboardData().earnings || { today: 0, week: 0, month: 0, total: 0 };
 
   return `
     <div class="page-header">
@@ -230,46 +199,49 @@ function getEarningsPage() {
       <p class="page-subtitle">Track your income and payment history</p>
     </div>
     
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-          <i class="fas fa-calendar-day"></i>
+    <div id="earnings-placeholder" class="earnings-dashboard-placeholder">
+        <!-- Will be populated by fetchAndRenderEarningsPage -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">₹${earnings.today}</div>
+              <div class="stat-label">Today</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+              <i class="fas fa-calendar-week"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">₹${earnings.week}</div>
+              <div class="stat-label">This Week</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+              <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">₹${earnings.month}</div>
+              <div class="stat-label">This Month</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+              <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">₹${earnings.total}</div>
+              <div class="stat-label">Total Earned</div>
+            </div>
+          </div>
         </div>
-        <div class="stat-content">
-          <div class="stat-value">₹${earnings.today}</div>
-          <div class="stat-label">Today</div>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-          <i class="fas fa-calendar-week"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">₹${earnings.week}</div>
-          <div class="stat-label">This Week</div>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-          <i class="fas fa-calendar-alt"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">₹${earnings.month}</div>
-          <div class="stat-label">This Month</div>
-        </div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-          <i class="fas fa-coins"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">₹${earnings.total}</div>
-          <div class="stat-label">Total Earned</div>
-        </div>
-      </div>
     </div>
   `;
 }
@@ -279,6 +251,7 @@ function getEarningsPage() {
 // ============================================
 
 function getWalletPage() {
+  const earnings = getDashboardData().earnings;
   return `
     <div class="page-header">
       <h1 class="page-title"><i class="fas fa-credit-card"></i> Wallet</h1>
@@ -291,7 +264,7 @@ function getWalletPage() {
       </div>
       <div class="card-body">
         <div style="text-align: center; padding: 2rem;">
-          <div style="font-size: 3rem; font-weight: bold; color: var(--primary-400);">₹${dashboardData.earnings.total || 0}</div>
+          <div style="font-size: 3rem; font-weight: bold; color: var(--primary-400);">₹${earnings.total || 0}</div>
           <p style="color: var(--text-secondary); margin-top: 0.5rem;">Available Balance</p>
           <button class="btn btn-primary" style="margin-top: 1rem;" onclick="alert('Withdrawal feature coming soon!')">
             <i class="fas fa-money-bill-wave"></i> Withdraw Funds
@@ -307,17 +280,13 @@ function getWalletPage() {
 // ============================================
 
 function getRatingsPage() {
-  const reviews = Storage.get('worker_reviews') || dashboardData.reviews || [];
+  const reviews = Storage.get('worker_reviews') || getDashboardData().reviews || [];
   const avgRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
     : 0;
-  const ratingDistribution = {
-    5: reviews.filter(r => r.rating === 5).length,
-    4: reviews.filter(r => r.rating === 4).length,
-    3: reviews.filter(r => r.rating === 3).length,
-    2: reviews.filter(r => r.rating === 2).length,
-    1: reviews.filter(r => r.rating === 1).length
-  };
+
+  const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  reviews.forEach(r => { if (ratingDistribution[r.rating] !== undefined) ratingDistribution[r.rating]++; });
 
   return `
     <div class="page-header">
@@ -326,7 +295,6 @@ function getRatingsPage() {
     </div>
     
     <div class="ratings-container">
-      <!-- Rating Summary -->
       <div class="card rating-summary-card">
         <div class="rating-summary">
           <div class="rating-score">
@@ -353,17 +321,9 @@ function getRatingsPage() {
         </div>
       </div>
       
-      <!-- Reviews List -->
       <div class="card">
         <div class="card-header">
           <h2>Customer Reviews</h2>
-          <select class="filter-select">
-            <option>All Reviews</option>
-            <option>5 Stars</option>
-            <option>4 Stars</option>
-            <option>3 Stars</option>
-            <option>Recent</option>
-          </select>
         </div>
         <div class="reviews-list">
           ${reviews.length > 0 ? reviews.map(review => `
@@ -387,7 +347,6 @@ function getRatingsPage() {
         </div>
       </div>
       
-       <!-- Performance Insights -->
       <div class="card">
         <div class="card-header">
           <h2><i class="fas fa-chart-pie" style="color:var(--primary-400);"></i> Performance Insights</h2>
@@ -417,11 +376,7 @@ function getRatingsPage() {
           <div class="insight-item">
             <span class="insight-icon"><i class="fas fa-sync" style="color:var(--success);"></i></span>
             <div class="insight-content">
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard-part2.js
-              <span class="insight-value">${dashboardData.performance.repeatCustomers}</span>
-=======
               <span class="insight-value">${getDashboardData().performance.repeatCustomers}%</span>
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard-part2.js
               <span class="insight-label">Repeat Customers</span>
             </div>
           </div>
@@ -516,7 +471,7 @@ function getSettingsPage() {
           <label>Phone</label>
           <input type="tel" class="form-control" value="${user.phone || ''}" readonly>
         </div>
-        <button class="btn btn-primary" onclick="changePassword()">
+        <button class="btn btn-primary" onclick="alert('Change password coming soon!')">
           <i class="fas fa-key"></i> Change Password
         </button>
       </div>
@@ -563,46 +518,13 @@ function getChatPage() {
         <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">No messages yet</p>
       </div>
     </div>
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard-part2.js
   `;
 }
-=======
 
-    <div class="dashboard-card" style="max-width: 800px; margin: 0 auto;">
-         <div class="card-header">
-             <h2>Select Co-worker</h2>
-             <input type="text" placeholder="Search co-workers..." class="search-input" style="width: 250px;">
-         </div>
-         
-         <div class="worker-list" id="workerListContainer" style="max-height: 600px; overflow-y: auto; padding: var(--spacing-md);">
-            ${coWorkers.map(w => `
-             <div class="worker-item ${!w.available ? 'disabled' : ''}" 
-                  onclick="selectCoWorker(this, '${w.name}')" 
-                  style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--radius-lg); margin-bottom: var(--spacing-sm); cursor: pointer; transition: all 0.2s; border: 1px solid transparent; ${!w.available ? 'opacity:0.6; pointer-events:none;' : ''}">
-               
-               <div class="user-avatar" style="width:50px; height:50px; font-size:1.5rem; background: var(--primary-600); color: white; display:flex; align-items:center; justify-content:center; border-radius:50%;">👷</div>
-               
-               <div style="flex:1;">
-                  <div style="font-weight:600; font-size: 1.1rem; margin-bottom: 2px;">${w.name}</div>
-                  <div style="font-size:0.9rem; color:var(--text-tertiary);">${w.skill} • ⭐ ${w.rating}</div>
-               </div>
-               
-               <span class="badge ${w.available ? 'badge-success' : 'badge-warning'}">
-                 ${w.available ? 'Available' : 'Busy'}
-               </span>
-             </div>
-           `).join('')}
-         </div>
+// ============================================
+// REFERRAL FEATURE
+// ============================================
 
-         <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-primary); display: flex; justify-content: flex-end; gap: var(--spacing-md);">
-             <button class="btn btn-ghost" onclick="loadPage('active-jobs')">Cancel</button>
-             <button class="btn btn-primary" id="referBtn" disabled onclick="confirmReferralPage('${jobId}')">Confirm Referral</button>
-         </div>
-    </div>
-    `;
-}
-
-// Reuse existing helper functions but safeguard them
 function selectCoWorker(el, name) {
   document.querySelectorAll('.worker-item').forEach(i => {
     i.style.borderColor = 'transparent';
@@ -610,7 +532,7 @@ function selectCoWorker(el, name) {
   });
   el.style.borderColor = 'var(--success)';
   el.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-  selectedWorkerName = name; // Global var usage
+  selectedWorkerName = name;
 
   const btn = document.getElementById('referBtn');
   if (btn) btn.disabled = false;
@@ -618,9 +540,8 @@ function selectCoWorker(el, name) {
 
 function confirmReferralPage(jobId) {
   if (selectedWorkerName) {
-    showToast(`Job ${jobId} successfully referred to ${selectedWorkerName}!`, 'success');
-    // Navigate back or refresh
-    setTimeout(() => loadPage('active-jobs'), 1500);
+    window.showToast?.(`Job ${jobId} successfully referred to ${selectedWorkerName}!`, 'success');
+    setTimeout(() => window.loadPage?.('active-jobs'), 1500);
   }
 }
 
@@ -641,7 +562,7 @@ function referCoWorker(jobId) {
         </div>
         <div class="worker-list">
            ${coWorkers.map(w => `
-             <div class="worker-item" onclick="selectCoWorker(this, '${w.name}')" style="${!w.available ? 'opacity:0.5;pointer-events:none;' : ''}">
+             <div class="worker-item" onclick="selectCoWorker(this, '${w.name}')" style="display:flex; align-items:center; gap:1rem; padding:1rem; border:1px solid transparent; border-radius:8px; cursor:pointer; ${!w.available ? 'opacity:0.5;pointer-events:none;' : ''}">
                <div class="chat-avatar">👷</div>
                <div style="flex:1;">
                   <div style="font-weight:600;">${w.name}</div>
@@ -653,88 +574,44 @@ function referCoWorker(jobId) {
         </div>
         <div class="modal-footer" style="padding-top:var(--spacing-lg); display:flex; justify-content:flex-end; gap:var(--spacing-sm);">
            <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-           <button class="btn btn-primary" id="referBtn" disabled onclick="confirmReferral('${jobId}')">Refer</button>
+           <button class="btn btn-primary" id="referBtn" disabled onclick="confirmReferralPage('${jobId}')">Refer</button>
         </div>
       </div>
     `;
   document.body.appendChild(modal);
 }
 
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard-part2.js
-
-// ============================================
-// REFERRAL PAGE (Alias)
-// ============================================
-
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard-part2.js
-function getReferralPage() {
-  return getReferralsPage();
-}
-=======
 function initializePage(pageName, params) {
   console.log(`Initialized page: ${pageName}`, params);
 
-  // Initialize chart if we are on home/overview or any page with the chart
-  const performanceCanvas = document.getElementById('performanceChart');
-  if (performanceCanvas) {
+  if (pageName === 'home') {
     updatePerformanceChart('week');
-
-    // Also fetch jobs for the dashboard
-    if (typeof fetchAndRenderJobRequests === 'function') fetchAndRenderJobRequests();
-    if (typeof fetchAndRenderActiveJobs === 'function') fetchAndRenderActiveJobs();
+    if (typeof window.fetchAndRenderJobRequests === 'function') window.fetchAndRenderJobRequests();
+    if (typeof window.fetchAndRenderActiveJobs === 'function') window.fetchAndRenderActiveJobs();
   } else if (pageName === 'job-history') {
-    if (typeof fetchAndRenderJobHistory === 'function') fetchAndRenderJobHistory();
-  } else if (pageName === 'support') {
-    const user = Storage.get('karyasetu_user');
-    if (user && typeof loadTicketsHistory === 'function') loadTicketsHistory(user.uid);
-  } else if (pageName === 'referrals') {
-    const user = Storage.get('karyasetu_user');
-    if (user && typeof loadReferralsHistory === 'function') loadReferralsHistory(user.uid);
-  }
-
-  // Initialize earnings chart if on earnings page
-  // fetchAndRenderEarningsPage handles chart init now
-  // if (pageName === 'earnings') {
-  //   setTimeout(initializeEarningsChart, 500);
-  // }
-  const earningsCanvas = document.getElementById('earningsChart');
-  if (earningsCanvas) {
+    if (typeof window.fetchAndRenderJobHistory === 'function') window.fetchAndRenderJobHistory();
+  } else if (pageName === 'earnings') {
+    fetchAndRenderEarningsPage();
     updateEarningsChart('week');
-  }
-
-  if (pageName === 'availability') {
-    // Initialize time pickers (already handled by HTML value)
-  }
-
-  if (pageName === 'earnings') {
-    if (typeof fetchAndRenderEarningsPage === 'function') fetchAndRenderEarningsPage();
   }
 }
 
 // ============================================
-// GLOBAL EXPOSURE FOR CROSS-MODULE ACCESS
+// GLOBAL EXPOSURE
 // ============================================
-// Expose page content functions globally so worker-dashboard.js can access them
+
 window.getAvailabilityPage = getAvailabilityPage;
 window.getEarningsPage = getEarningsPage;
 window.getWalletPage = getWalletPage;
 window.getRatingsPage = getRatingsPage;
-window.getRatingsReviewsPage = getRatingsPage; // Compatibility alias
+window.getRatingsReviewsPage = getRatingsPage;
 window.getSupportPage = getSupportPage;
 window.getSettingsPage = getSettingsPage;
 window.getReferralsPage = getReferralsPage;
+window.getReferralPage = getReferralsPage;
+window.getChatPage = getChatPage;
 window.showReferralModal = referCoWorker;
 window.selectCoWorker = selectCoWorker;
 window.confirmReferralPage = confirmReferralPage;
-window.toggleDay = toggleDay;
-window.updateTime = updateTime;
-window.applyToAllDays = applyToAllDays;
-window.getChatPage = getChatPage;
-window.getReferralPage = getReferralPage;
 window.initializePage = initializePage;
-
-// ============================================
-// INITIAL LOAD
-// ============================================
-// Note: Initialization is handled in worker-dashboard.js
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard-part2.js
+window.fetchAndRenderEarningsPage = fetchAndRenderEarningsPage;

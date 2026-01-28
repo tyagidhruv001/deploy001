@@ -1168,37 +1168,6 @@ async function renderProfile() {
 
     let user = Storage.get(STORAGE_KEYS.USER) || {};
 
-<<<<<<< HEAD:frontend/dashboard/customer-dashboard.js
-    // Fetch fresh data from Firestore if we have a UID
-    if (user.uid) {
-        try {
-            const freshData = await API.auth.getProfile(user.uid);
-            if (freshData) {
-                // Merge fresh data with local data (keep local profilePic if exists)
-                const localProfilePic = user.profilePic;
-                user = { ...user, ...freshData };
-                if (localProfilePic) user.profilePic = localProfilePic;
-
-                // Update localStorage with fresh data
-                Storage.set(STORAGE_KEYS.USER, user);
-                console.log('✅ Profile data refreshed from Firestore:', user);
-            }
-        } catch (e) {
-            console.warn('❌ Could not fetch fresh profile data:', e);
-            // Continue with cached data
-        }
-    }
-
-    // Map common field names for display
-    user.joinedDate = user.joinedDate || user.createdAt || user.created_at || 'Nov 2023';
-    // Format date if it's an ISO string
-    if (user.joinedDate && typeof user.joinedDate === 'string' && user.joinedDate.includes('T')) {
-        try {
-            const date = new Date(user.joinedDate);
-            user.joinedDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-        } catch (e) {
-            console.warn('Error formatting joinedDate:', e);
-=======
     // 1. Fetch Fresh Data (if online)
     if (user.uid) {
         try {
@@ -1240,7 +1209,6 @@ async function renderProfile() {
             }
         } catch (e) {
             console.warn('Background profile fetch failed, using cached data:', e);
->>>>>>> vengeance2.0:frontend/pages/dashboard/customer/customer-dashboard.js
         }
     }
 

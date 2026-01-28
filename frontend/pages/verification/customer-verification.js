@@ -3,12 +3,7 @@ import { apiFetch } from '../../js/api.js';
 import { Storage } from '../../js/utils.js';
 import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-<<<<<<< HEAD:frontend/onboarding/customer-verification.js
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const VERCEL_BACKEND_URL = ''; // Update this for production
-const API_BASE_URL = isLocal ? 'http://localhost:5000/api' : (VERCEL_BACKEND_URL ? VERCEL_BACKEND_URL + '/api' : window.location.origin + '/api');
-=======
->>>>>>> vengeance2.0:frontend/pages/verification/customer-verification.js
+
 
 class CustomerVerificationFlow {
     constructor() {

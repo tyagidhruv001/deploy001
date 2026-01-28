@@ -208,14 +208,11 @@ let dashboardData = {
   }
 };
 
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard.js
-=======
 // Global exposure for Part 2
 window.userData = userData;
 window.userProfile = userProfile;
 window.contentArea = contentArea;
 window.dashboardData = dashboardData;
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard.js
 
 // Update user info
 // Update user info in Sidebar
@@ -356,24 +353,16 @@ async function refreshDashboardData() {
   subscribeToWorkerJobs(user.uid);
 
   try {
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard.js
     // 0. Fetch Latest Profile
-    const liveProfile = await API.auth.getProfile(user.uid);
-    if (liveProfile) {
-      Storage.set('karyasetu_user', { ...user, ...liveProfile });
-=======
-    // 0. Fetch Latest Profile from Firestore
     try {
-      const workerDoc = await getDoc(doc(db, 'workers', user.uid));
-      if (workerDoc.exists()) {
-        const liveProfile = workerDoc.data();
+      const liveProfile = await API.auth.getProfile(user.uid);
+      if (liveProfile) {
         Storage.set('karyasetu_user', { ...user, ...liveProfile });
       }
     } catch (profileError) {
       console.warn('Could not fetch worker profile:', profileError);
-      // Continue without updated profile
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard.js
     }
+
 
     // 1. Fetch Real Bookings from Firestore (Limited to 50)
     const [myBookingsResult, availableBookingsResult, transactionsResult, reviewsResult] = await Promise.allSettled([
@@ -2051,11 +2040,7 @@ function renderActiveJobsList(activeJobs, container) {
           `).join('');
 }
 
-<<<<<<< HEAD:frontend/dashboard/worker-dashboard.js
-// (Duplicate functions removed)
 
-=======
->>>>>>> vengeance2.0:frontend/pages/dashboard/worker/worker-dashboard.js
 async function acceptJob(jobId) {
   if (!confirm('Are you sure you want to accept this job?')) return;
 
