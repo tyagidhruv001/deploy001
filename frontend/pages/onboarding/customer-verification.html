@@ -50,20 +50,21 @@
             <!-- Basic Info Form -->
             <form class="onboarding-form" id="customerBasicInfoForm">
                 <div class="input-group">
-                    <label class="input-label">Location</label>
-                    <input type="text" class="input-field" id="location" placeholder="Enter your city" required>
+                    <label class="input-label" for="location">Location</label>
+                    <input type="text" class="input-field" id="location" placeholder="Enter your city"
+                        autocomplete="address-level2" required>
                 </div>
 
                 <div class="input-group">
-                    <label class="input-label">Address</label>
+                    <label class="input-label" for="address">Address</label>
                     <textarea class="input-field" id="address" rows="3" placeholder="Enter your full address"
-                        required></textarea>
+                        autocomplete="street-address" required></textarea>
                 </div>
 
                 <div class="input-group">
-                    <label class="input-label">Pincode</label>
+                    <label class="input-label" for="pincode">Pincode</label>
                     <input type="text" class="input-field" id="pincode" placeholder="Enter pincode" pattern="[0-9]{6}"
-                        required>
+                        autocomplete="postal-code" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg">
@@ -135,7 +136,7 @@
         </div>
     </div>
 
-    <script type="module" src="../verification/customer-verification.js"></script>
+    <script type="module" src="/pages/verification/customer-verification.js"></script>
 </body>
 
 </html>

@@ -266,6 +266,18 @@
         .info-box li {
             margin-bottom: 0.25rem;
         }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
     </style>
 </head>
 
@@ -326,23 +338,26 @@
                     <form id="aadhaarForm">
                         <div class="aadhaar-input-group">
                             <div class="aadhaar-segment">
-                                <input type="text" class="input-field aadhaar-input" maxlength="4" pattern="[0-9]{4}"
-                                    placeholder="XXXX" required>
+                                <label for="aadhaar-1" class="sr-only">Aadhaar First 4 Digits</label>
+                                <input type="text" id="aadhaar-1" class="input-field aadhaar-input" maxlength="4"
+                                    pattern="[0-9]{4}" placeholder="XXXX" autocomplete="off" required>
                             </div>
                             <div class="aadhaar-segment">
-                                <input type="text" class="input-field aadhaar-input" maxlength="4" pattern="[0-9]{4}"
-                                    placeholder="XXXX" required>
+                                <label for="aadhaar-2" class="sr-only">Aadhaar Middle 4 Digits</label>
+                                <input type="text" id="aadhaar-2" class="input-field aadhaar-input" maxlength="4"
+                                    pattern="[0-9]{4}" placeholder="XXXX" autocomplete="off" required>
                             </div>
                             <div class="aadhaar-segment">
-                                <input type="text" class="input-field aadhaar-input" maxlength="4" pattern="[0-9]{4}"
-                                    placeholder="XXXX" required>
+                                <label for="aadhaar-3" class="sr-only">Aadhaar Last 4 Digits</label>
+                                <input type="text" id="aadhaar-3" class="input-field aadhaar-input" maxlength="4"
+                                    pattern="[0-9]{4}" placeholder="XXXX" autocomplete="off" required>
                             </div>
                         </div>
 
                         <div class="input-group">
-                            <label class="input-label">Full Name (as per Aadhaar)</label>
+                            <label class="input-label" for="aadhaarName">Full Name (as per Aadhaar)</label>
                             <input type="text" class="input-field" id="aadhaarName" placeholder="Enter your full name"
-                                required>
+                                autocomplete="name" required>
                         </div>
 
                         <div class="alert alert-info">
@@ -365,12 +380,24 @@
                     </p>
 
                     <div class="otp-input-group">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+                        <label for="otp-1" class="sr-only">OTP Digit 1</label>
+                        <input type="text" id="otp-1" class="otp-input" maxlength="1" pattern="[0-9]"
+                            autocomplete="one-time-code">
+                        <label for="otp-2" class="sr-only">OTP Digit 2</label>
+                        <input type="text" id="otp-2" class="otp-input" maxlength="1" pattern="[0-9]"
+                            autocomplete="one-time-code">
+                        <label for="otp-3" class="sr-only">OTP Digit 3</label>
+                        <input type="text" id="otp-3" class="otp-input" maxlength="1" pattern="[0-9]"
+                            autocomplete="one-time-code">
+                        <label for="otp-4" class="sr-only">OTP Digit 4</label>
+                        <input type="text" id="otp-4" class="otp-input" maxlength="1" pattern="[0-9]"
+                            autocomplete="one-time-code">
+                        <label for="otp-5" class="sr-only">OTP Digit 5</label>
+                        <input type="text" id="otp-5" class="otp-input" maxlength="1" pattern="[0-9]"
+                            autocomplete="one-time-code">
+                        <label for="otp-6" class="sr-only">OTP Digit 6</label>
+                        <input type="text" id="otp-6" class="otp-input" maxlength="1" pattern="[0-9]"
+                            autocomplete="one-time-code">
                     </div>
 
                     <div class="otp-timer">
@@ -470,8 +497,8 @@
         </div>
     </div>
 
-    <script type="module" src="../../js/utils.js"></script>
-    <script type="module" src="auth-worker-verification.js"></script>
+    <script type="module" src="/js/utils.js"></script>
+    <script type="module" src="/pages/auth/auth-worker-verification.js"></script>
 </body>
 
 </html>

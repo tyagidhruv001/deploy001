@@ -62,6 +62,18 @@
         .compact-upload p {
             font-size: 0.85rem;
         }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
     </style>
 </head>
 
@@ -88,8 +100,8 @@
             <div id="stepContent1" class="step-content">
                 <form class="onboarding-form" id="workerBasicInfoForm">
                     <div class="input-group">
-                        <label class="input-label">Service Category</label>
-                        <select class="input-field" id="serviceCategory" required>
+                        <label class="input-label" for="serviceCategory">Service Category</label>
+                        <select class="input-field" id="serviceCategory" autocomplete="organization-title" required>
                             <option value="">Select your service</option>
                             <option value="plumbing">Plumbing</option>
                             <option value="electrical">Electrical Work</option>
@@ -102,25 +114,27 @@
                     </div>
 
                     <div class="input-group">
-                        <label class="input-label">Years of Experience</label>
-                        <input type="number" class="input-field" id="experience" min="0" max="50" required>
+                        <label class="input-label" for="experience">Years of Experience</label>
+                        <input type="number" class="input-field" id="experience" min="0" max="50" autocomplete="off"
+                            required>
                     </div>
 
                     <div class="input-group">
-                        <label class="input-label">Location</label>
-                        <input type="text" class="input-field" id="location" placeholder="Enter your city" required>
+                        <label class="input-label" for="location">Location</label>
+                        <input type="text" class="input-field" id="location" placeholder="Enter your city"
+                            autocomplete="address-level2" required>
                     </div>
 
                     <div class="input-group">
-                        <label class="input-label">Address</label>
+                        <label class="input-label" for="address">Address</label>
                         <textarea class="input-field" id="address" rows="3" placeholder="Enter your full address"
-                            required></textarea>
+                            autocomplete="street-address" required></textarea>
                     </div>
 
                     <div class="input-group">
-                        <label class="input-label">Pincode</label>
+                        <label class="input-label" for="pincode">Pincode</label>
                         <input type="text" class="input-field" id="pincode" placeholder="Enter pincode"
-                            pattern="[0-9]{6}" required>
+                            pattern="[0-9]{6}" autocomplete="postal-code" required>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg">
@@ -197,8 +211,7 @@
                         <!-- Profile summary will be inserted here -->
                     </div>
 
-                    <button class="btn btn-primary btn-lg" id="completeOnboarding"
-                        onclick="workerVerification.completeOnboarding()">
+                    <button class="btn btn-primary btn-lg" id="completeOnboarding">
                         <i class="fas fa-rocket"></i> Go to Dashboard
                     </button>
                 </div>
@@ -215,7 +228,7 @@
         </div>
     </div>
 
-    <script type="module" src="onboarding-worker-verification.js"></script>
+    <script type="module" src="/pages/onboarding/onboarding-worker-verification.js"></script>
 </body>
 
 </html>

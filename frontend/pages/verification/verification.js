@@ -1,5 +1,6 @@
-import { auth, db } from '../../js/config.js';
-import { Storage } from '../../js/utils.js';
+import { auth, db } from '/js/config.js';
+import { apiFetch } from '/js/api.js';
+import { Storage } from '/js/utils.js';
 
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const VERCEL_BACKEND_URL = ''; // Update this for production
