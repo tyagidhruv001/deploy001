@@ -12,6 +12,14 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+app.get("/", (req, res) => {
+    res.json({ message: "KaryaSetu Backend is running!", status: "online" });
+});
+
+app.get("/api", (req, res) => {
+    res.json({ message: "KaryaSetu API is running!", status: "safe", path: "api" });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/users', require('./routes/users.routes'));
