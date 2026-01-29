@@ -7,14 +7,17 @@
             "runtime": "vercel-node@latest"
         }
     },
-    "rewrites": [
+    "routes": [
         {
-            "source": "/api/(.*)",
-            "destination": "/api/index.js"
+            "src": "/api(/(.*))?",
+            "dest": "/api/index.js"
         },
         {
-            "source": "/api",
-            "destination": "/api/index.js"
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
         }
     ]
 }
