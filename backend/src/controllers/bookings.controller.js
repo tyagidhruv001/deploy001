@@ -1,4 +1,4 @@
-const { db, admin } = require('../config/firebase');
+const { db, admin } = require('../../config/firebase');
 
 exports.createBooking = async (req, res) => {
     try {

@@ -27,7 +27,7 @@ try {
     console.log('Current directory of firebase.js:', __dirname);
     console.log('FIREBASE_SERVICE_ACCOUNT env var not present or valid. Attempting to load from local file...');
     try {
-      serviceAccount = require('../../serviceAccountKey.json');
+      serviceAccount = require('../serviceAccountKey.json');
       console.log('Successfully loaded serviceAccount from local file.');
     } catch (e) {
       console.warn('Could not load local serviceAccountKey.json:', e.message);
