@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "ls -la frontend",
+    "buildCommand": "ls -R",
     "outputDirectory": "frontend/dist",
     "functions": {
         "api/index.js": {
