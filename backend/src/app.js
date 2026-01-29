@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 require('./config/firebase');
 
@@ -11,6 +12,9 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Serve static files from root directory
+app.use(express.static(path.join(__dirname, '../../')));
 
 app.get("/", (req, res) => {
     res.json({ message: "KaryaSetu Backend is running!", status: "online" });

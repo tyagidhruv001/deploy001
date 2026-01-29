@@ -25,3 +25,4 @@ serviceAccountKey.json
 
 # Specific files
 end_of_file_check.txt
+.vercel
