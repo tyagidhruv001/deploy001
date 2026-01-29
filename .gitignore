@@ -13,3 +13,4 @@ frontend/config.js
 # Note: frontend and backend specific ignores are handled in their respective .gitignore files
 .vercel
 .env*.local
+js/config.js
