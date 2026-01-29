@@ -7,6 +7,12 @@ end_of_file_check.txt
 **/.DS_Store
 **/Thumbs.db
 
+/frontend/.env
+/backend/.env
+
+frontend/node_modules
+backend/node_modules
+
 # Firebase config (contains API keys)
 frontend/config.js
 

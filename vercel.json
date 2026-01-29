@@ -1,6 +1,12 @@
 {
     "version": 2,
-    "cleanUrls": true,
+    "buildCommand": "sh build.sh",
+    "outputDirectory": "public",
+    "functions": {
+        "api/index.js": {
+            "runtime": "vercel-node@latest"
+        }
+    },
     "rewrites": [
         {
             "source": "/api/(.*)",
