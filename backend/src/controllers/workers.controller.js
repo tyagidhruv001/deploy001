@@ -1,4 +1,4 @@
-const { db } = require('../config/firebase');
+const { db } = require('../../config/firebase');
 const ngeohash = require('ngeohash');
 const { getDistanceFromLatLonInKm } = require('../utils/location.utils');
 

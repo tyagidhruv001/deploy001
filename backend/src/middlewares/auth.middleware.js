@@ -1,4 +1,4 @@
-const { auth } = require('../config/firebase');
+const { auth } = require('../../config/firebase');
 
 module.exports = async function (req, res, next) {
     try {

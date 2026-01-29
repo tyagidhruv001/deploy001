@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db, admin } = require('../config/firebase');
+const { db, admin } = require('../../config/firebase');
 
 // @route   POST /api/transactions
 // @desc    Create a new transaction (credit/debit)

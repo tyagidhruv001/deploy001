@@ -1,4 +1,4 @@
-const { auth, db } = require('../config/firebase');
+const { auth, db } = require('../../config/firebase');
 
 exports.signup = async (req, res) => {
     try {

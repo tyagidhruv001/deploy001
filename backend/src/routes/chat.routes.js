@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../config/firebase');
+const { db } = require('../../config/firebase');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 
