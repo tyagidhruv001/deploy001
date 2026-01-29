@@ -9,20 +9,21 @@
             }
         },
         {
-            "src": "backend/src/server.js",
+            "src": "api/index.js",
             "use": "@vercel/node"
         }
     ],
-    "rewrites": [
+    "routes": [
         {
-            "source": "/api/(.*)",
-            "destination": "backend/src/server.js"
+            "src": "/api/(.*)",
+            "dest": "/api/index.js"
         },
         {
-            "source": "/(.*)",
-            "destination": "/$1"
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/frontend/$1"
         }
-    ],
-    "cleanUrls": true,
-    "trailingSlash": false
+    ]
 }
