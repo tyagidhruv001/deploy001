@@ -1,11 +1,11 @@
-﻿// ============================================
+// ============================================
 // WORKER DASHBOARD - COMPLETE IMPLEMENTATION
 // ============================================
 
 // Imports
-import { API, apiFetch } from '/js/api.js';
-import { Storage, getRelativeTime } from '/js/utils.js';
-import { auth, db } from '/js/config.js';
+import { API, apiFetch } from '../../../js/api.js';
+import { Storage, getRelativeTime } from '../../../js/utils.js';
+import { auth, db } from '../../../js/config.js';
 import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // ============================================
@@ -943,7 +943,7 @@ function getWorkerHomePage() {
             <div class="label">Active Tasks</div>
             <div class="value-row">
               <div class="value">${jobs.active.length}</div>
-              <div class="sub-value">↑ Ongoing</div>
+              <div class="sub-value">? Ongoing</div>
             </div>
           </div>
         </div>

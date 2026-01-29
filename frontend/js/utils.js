@@ -335,3 +335,11 @@ export {
     showToast,
     showConfirm
 };
+
+// Expose to window for inline module script compatibility
+window.Storage = Storage;
+window.showToast = showToast;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.showConfirm = showConfirm;
+

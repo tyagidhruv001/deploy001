@@ -7,16 +7,16 @@
     <meta name="description" content="Sign up for KaryaSetu - Your Trusted Blue-Collar Service Platform">
     <title>Sign Up - KaryaSetu</title>
 
-    <link rel="stylesheet" href="/css/theme.css">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/pages/auth/auth.css">
+    <link rel="stylesheet" href="../../css/theme.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="./auth.css">
 </head>
 
 <body>
     <div class="auth-container gradient-mesh">
         <div class="auth-card card-glass">
             <div class="auth-header">
-                <a href="/index.html" class="back-link">
+                <a href="../../index.html" class="back-link">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round" />
@@ -103,16 +103,16 @@
         </div>
     </div>
 
-    <script type="module" src="/js/api.js"></script>
-    <script type="module" src="/js/utils.js"></script>
-    <script type="module" src="/pages/auth/auth.js"></script>
+    <script type="module" src="../../js/api.js"></script>
+    <script type="module" src="../../js/utils.js"></script>
+    <script type="module" src="./auth.js"></script>
     <script type="module">
         // Check for role
         const urlParams = new URLSearchParams(window.location.search);
         let role = urlParams.get('role') || Storage.get('karyasetu_user_role');
 
         if (!role) {
-            window.location.href = '/pages/auth/role-select.html?mode=signup';
+            window.location.href = './role-select.html?mode=signup';
         } else {
             // Update UI to show role
             const roleText = role === 'customer' ? 'Customer' : 'Worker';
@@ -170,9 +170,9 @@
 
                 // Redirect based on role
                 if (role === 'customer') {
-                    window.location.href = '/pages/onboarding/customer-verification.html';
+                    window.location.href = '../onboarding/customer-verification.html';
                 } else {
-                    window.location.href = '/pages/onboarding/worker-verification.html';
+                    window.location.href = '../onboarding/worker-verification.html';
                 }
 
             } catch (error) {

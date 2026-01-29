@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Service - KaryaSetu Professionals</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/theme.css">
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../../css/theme.css">
+    <link rel="stylesheet" href="../../css/main.css">
     <style>
         :root {
             --glass-bg: rgba(15, 23, 42, 0.7);
@@ -691,11 +691,11 @@
         </div>
     </div>
 
-    <script type="module" src="/js/api.js"></script>
-    <script type="module" src="/js/utils.js"></script>
+    <script type="module" src="../../js/api.js"></script>
+    <script type="module" src="../../js/utils.js"></script>
     <script type="module">
-        import { API_BASE, API } from '/js/api.js';
-        import { Storage } from '/js/utils.js';
+        import { API_BASE, API } from '../../js/api.js';
+        import { Storage } from '../../js/utils.js';
 
         let currentStep = 1;
         const totalSteps = 4;
@@ -716,7 +716,7 @@
 
         if (!serviceType || serviceType === 'General') {
             alert('Please select a service category first.');
-            window.location.href = '/pages/dashboard/customer/customer-dashboard.html';
+            window.location.href = '../dashboard/customer/customer-dashboard.html';
         }
 
         function updateServiceTitle() {
@@ -884,7 +884,7 @@
                 elements.nextBtn.disabled = true;
                 const res = await API.bookings.create(data);
                 alert('Booking Successful!');
-                window.location.href = '/pages/dashboard/customer/customer-dashboard.html';
+                window.location.href = '../dashboard/customer/customer-dashboard.html';
             } catch (e) {
                 alert('Booking failed: ' + e.message);
                 elements.nextBtn.textContent = 'Confirm & Book';

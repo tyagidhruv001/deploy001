@@ -6,16 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Your Role - KaryaSetu</title>
 
-    <link rel="stylesheet" href="/css/theme.css">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/pages/auth/auth.css">
+    <link rel="stylesheet" href="../../css/theme.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="./auth.css">
 </head>
 
 <body>
     <div class="auth-container gradient-mesh">
         <div class="auth-card card-glass role-select-card">
             <div class="auth-header">
-                <a href="/index.html" class="back-link">
+                <a href="../../index.html" class="back-link">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round" />
@@ -81,7 +81,7 @@
         </div>
     </div>
 
-    <script type="module" src="/js/utils.js"></script>
+    <script type="module" src="../../js/utils.js"></script>
     <script type="module">
         // Role selection handler
         document.querySelectorAll('.role-card').forEach(card => {
@@ -98,9 +98,9 @@
 
                 // Redirect to respective authentication page
                 if (mode === 'login') {
-                    window.location.href = `/pages/auth/login.html?role=${role}`;
+                    window.location.href = `./login.html?role=${role}`;
                 } else {
-                    window.location.href = `/pages/auth/signup.html?role=${role}`;
+                    window.location.href = `./signup.html?role=${role}`;
                 }
             });
         });

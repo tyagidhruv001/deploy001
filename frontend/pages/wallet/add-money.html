@@ -185,7 +185,7 @@
 
 <body>
     <div class="container">
-        <a href="/pages/dashboard/customer/customer-dashboard.html" class="back-btn">
+        <a href="../dashboard/customer/customer-dashboard.html" class="back-btn">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
 
@@ -239,10 +239,10 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script type="module">
-        import { auth, db } from '/js/config.js';
+        import { auth, db } from '../../js/config.js';
 
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const API_URL = isLocal ? 'http://localhost:5000/api' : window.location.origin + '/api';
+        const API_URL = isLocal ? 'http://localhost:5000/api' : (window.location.origin + '/api');
         let selectedAmount = 0;
         let currentUser = null;
 
@@ -253,13 +253,13 @@
                 await loadWalletBalance();
             } else {
                 alert('Please login to add money to wallet');
-                window.location.href = '/pages/auth/login.html';
+                window.location.href = '../auth/login.html';
             }
         });
 
         async function loadWalletBalance() {
             try {
-                const response = await fetch(`${API_URL}/api/payments/balance/${currentUser.uid}`);
+                const response = await fetch(`${API_URL}/payments/balance/${currentUser.uid}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -307,7 +307,7 @@
                 document.getElementById('pay-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating order...';
 
                 // Create Razorpay order
-                const orderResponse = await fetch(`${API_URL}/api/payments/create-order`, {
+                const orderResponse = await fetch(`${API_URL}/payments/create-order`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -359,7 +359,7 @@
 
         async function verifyPayment(response) {
             try {
-                const verifyResponse = await fetch(`${API_URL}/api/payments/verify`, {
+                const verifyResponse = await fetch(`${API_URL}/payments/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
