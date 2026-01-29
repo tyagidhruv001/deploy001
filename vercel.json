@@ -1,7 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "sh build.sh",
-    "outputDirectory": "public",
+    "cleanUrls": true,
     "functions": {
         "api/index.js": {
             "runtime": "vercel-node@latest"
@@ -11,6 +10,10 @@
         {
             "source": "/api/(.*)",
             "destination": "/api/index.js"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/$1"
         }
     ]
 }
