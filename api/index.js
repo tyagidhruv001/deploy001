@@ -1,8 +1,7 @@
 const app = require("../backend/src/app");
 
-// Explicitly handle /api or /api/ to avoid "Cannot GET /api"
-app.get("/api", (req, res) => {
-    res.json({ message: "KaryaSetu API is running!", status: "safe" });
-});
+// This wrapper ensures that Vercel finds the Express app
+// and we can add some logging to debug if needed.
+console.log("API bridge initialized");
 
 module.exports = app;
