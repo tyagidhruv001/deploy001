@@ -81,17 +81,50 @@ class WorkerVerificationFlow {
         this.completeOnboardingBtn.addEventListener('click', () => this.completeOnboarding());
     }
 
-    handleBasicInfoSubmit() {
-        this.workerData = {
-            serviceCategory: document.getElementById('serviceCategory').value,
-            experience: document.getElementById('experience').value,
-            location: document.getElementById('location').value,
-            address: document.getElementById('address').value,
-            pincode: document.getElementById('pincode').value,
-            role: 'worker'
-        };
+    async handleBasicInfoSubmit() {
+        const submitBtn = this.basicInfoForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
 
-        this.goToStep(2);
+        try {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            this.workerData = {
+                serviceCategory: document.getElementById('serviceCategory').value,
+                experience: document.getElementById('experience').value,
+                location: document.getElementById('location').value,
+                address: document.getElementById('address').value,
+                pincode: document.getElementById('pincode').value,
+                role: 'worker'
+            };
+
+            // Get User ID
+            const storageUserStr = sessionStorage.getItem('karyasetu_user');
+            const storageUser = storageUserStr ? JSON.parse(storageUserStr) : null;
+            const userId = auth.currentUser ? auth.currentUser.uid : (storageUser ? storageUser.uid : null);
+
+            if (userId) {
+                // Save preliminary data using merge: true to avoid overwriting unrelated fields
+                await setDoc(doc(db, 'workers', userId), {
+                    ...this.workerData,
+                    userId: userId,
+                    email: (auth.currentUser ? auth.currentUser.email : (storageUser ? storageUser.email : '')) || '',
+                    updatedAt: new Date().toISOString(),
+                    onboardingStep: 1
+                }, { merge: true });
+                console.log('Basic info saved for user:', userId);
+            } else {
+                console.warn('No user ID found, proceeding without saving to DB');
+            }
+
+            this.goToStep(2);
+        } catch (error) {
+            console.error("Error saving basic info:", error);
+            alert("Failed to save progress. Please try again.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
     }
 
     goToStep(stepNumber) {

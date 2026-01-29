@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Dashboard - KaryaSetu</title>
+
+    <link rel="stylesheet" href="../../css/theme.css">
+    <link rel="stylesheet" href="../../css/main.css">
+</head>
+
+<body
+    style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-primary);">
+    <div style="text-align: center;">
+        <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Loading Dashboard...</h2>
+        <div class="spinner" style="margin: 0 auto;"></div>
+    </div>
+
+    <script type="module" src="../../js/utils.js"></script>
+    <script type="module">
+        // Dashboard Router - Redirects to appropriate dashboard based on role
+        const userData = Storage.get('karyasetu_user');
+        const userRole = Storage.get('karyasetu_user_role');
+
+        // Check authentication
+        if (!userData || !userData.loggedIn) {
+            window.location.href = '../auth/login.html';
+        } else {
+            // Redirect based on role
+            if (userRole === 'customer') {
+                window.location.href = './customer/customer-dashboard.html';
+            } else if (userRole === 'worker') {
+                window.location.href = './worker/worker-dashboard.html';
+            } else {
+                // No role set, redirect to role selection
+                window.location.href = '../auth/role-select.html';
+            }
+        }
+    </script>
+</body>
+
+</html>
