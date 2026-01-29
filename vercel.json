@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "mkdir -p frontend/dist && cp frontend/index.html frontend/dist/index.html",
+    "buildCommand": "ls -la frontend",
     "outputDirectory": "frontend/dist",
     "functions": {
         "api/index.js": {
