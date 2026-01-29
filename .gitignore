@@ -1,12 +1,4 @@
-# Common ignores
-node_modules/
-dist/
-build/
-.env
-.env.*
-*.log
 
-# IDEs
 .idea/
 .vscode/
 
@@ -14,15 +6,25 @@ build/
 .DS_Store
 Thumbs.db
 
-# Firebase/Config
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Environments
+.env
+.env.*
+/frontend/.env
+/backend/.env
+
+# Secrets
+serviceAccountKey.json
+backend/serviceAccountKey.json
 frontend/config.js
 config.js
-backend/serviceAccountKey.json
-serviceAccountKey.json
 
 # Vercel
 .vercel/
 
 # Specific files
 end_of_file_check.txt
-.vercel
