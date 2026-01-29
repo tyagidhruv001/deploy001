@@ -1,0 +1,15 @@
+--- Testing Firestore Connection ---
+Workers count (limited to 5): 5
+Worker ID: B8Nz7WPAMHUh32ysKy3KGBYH2f62, Name: N/A, Category: N/A
+Worker ID: Bqv3UnqnDLbZmr4kkFZl8R0VDIc2, Name: N/A, Category: N/A
+Worker ID: OIYQ4kNrRlTfMck4c0mc5EY9x0F3, Name: N/A, Category: N/A
+Worker ID: hydWFKPauUaDO95KzyRZvax2Tqw2, Name: N/A, Category: N/A
+Worker ID: j7eITVVsQhdgolPsnDt9BDanN1H2, Name: N/A, Category: N/A
+Worker Role Users count (limited to 5): 5
+User ID: 4yMCs9cckwVu5i5sXCu0gcwVTC13, Name: sdfghjk
+User ID: 5XyhJOiuQJM1vUuhrk02DnVKkTO2, Name: ka
+User ID: B8Nz7WPAMHUh32ysKy3KGBYH2f62, Name: blackyyy
+User ID: Bqv3UnqnDLbZmr4kkFZl8R0VDIc2, Name: Dhruv Tyagi
+User ID: C2LC3kacgKbYATV7V65FrDyB6RI2, Name: Rudri
+
+✅ Workers found! Firestore connection is active and returning data.
