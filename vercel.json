@@ -1,16 +1,23 @@
 {
     "version": 2,
-    "buildCommand": "sh build.sh",
-    "outputDirectory": "public",
+    "buildCommand": "cd frontend && npm install && npm run build",
+    "outputDirectory": "frontend/dist",
     "functions": {
         "api/index.js": {
             "runtime": "vercel-node@latest"
         }
     },
-    "rewrites": [
+    "routes": [
         {
-            "source": "/api/(.*)",
-            "destination": "/api/index.js"
+            "src": "/api(/(.*))?",
+            "dest": "/api/index.js"
+        },
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
         }
     ]
 }
