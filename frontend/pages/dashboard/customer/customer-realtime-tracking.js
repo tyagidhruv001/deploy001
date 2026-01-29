@@ -43,7 +43,7 @@ function startGlobalPolling() {
     pollAllWorkers();
 
     // Loop
-    globalPollInterval = setInterval(pollAllWorkers, 10000);
+    globalPollInterval = setInterval(pollAllWorkers, 60000); // 1 minute interval to save quota
 }
 
 async function pollAllWorkers() {

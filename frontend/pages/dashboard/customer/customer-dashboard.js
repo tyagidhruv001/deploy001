@@ -547,15 +547,22 @@ async function updateDashboardStats() {
     if (!user || !user.uid) return;
 
     try {
-        // Fetch real wallet balance from API using unified apiFetch
-        const data = await apiFetch(`/payments/balance/${user.uid}`);
+        // Only fetch balance every 5 minutes to save quota
+        const lastFetch = user._lastBalanceFetch || 0;
+        const now = Date.now();
 
-        const walletBalEl = getEl('stat-wallet-bal');
-        if (walletBalEl && data.success) {
-            walletBalEl.textContent = `₹${data.balance.toFixed(2)}`;
-            // Also update local storage for persistence
-            user.wallet = { balance: data.balance };
-            Storage.set(STORAGE_KEYS.USER, user);
+        if (now - lastFetch > 300000) { // 5 minutes
+            const data = await apiFetch(`/payments/balance/${user.uid}`);
+            const walletBalEl = getEl('stat-wallet-bal');
+            if (walletBalEl && data.success) {
+                walletBalEl.textContent = `₹${data.balance.toFixed(2)}`;
+                user.wallet = { balance: data.balance };
+                user._lastBalanceFetch = now;
+                Storage.set(STORAGE_KEYS.USER, user);
+            }
+        } else if (user.wallet) {
+            const walletBalEl = getEl('stat-wallet-bal');
+            if (walletBalEl) walletBalEl.textContent = `₹${(user.wallet.balance || 0).toFixed(2)}`;
         }
 
         // Update booking counts
