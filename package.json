@@ -1,0 +1,7 @@
+{
+    "name": "poison-cynide",
+    "private": true,
+    "scripts": {
+        "build": "echo 'No build step required for static hosting'"
+    }
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refer Co-worker - KaryaSetu</title>
+    <link rel="stylesheet" href="../../css/theme.css">
+    <link rel="stylesheet" href="./dashboard.css">
+    <link rel="stylesheet" href="./worker/worker-dashboard-styles.css">
+    <style>
+        .refer-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+        }
+
+        .worker-list-page {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .worker-card-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-elevated);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .worker-card-item:hover {
+            border-color: var(--primary-500);
+            background: var(--bg-tertiary);
+        }
+
+        .worker-card-item.selected {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .worker-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .worker-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .action-footer {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="refer-container">
+        <h1>🤝 Refer a Co-worker</h1>
+        <p class="text-tertiary">Select a trusted co-worker to take over this job if you are unavailable.</p>
+
+        <div class="worker-list-page" id="workerList">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="action-footer">
+            <button class="btn btn-ghost" onclick="window.close()">Cancel</button>
+            <button class="btn btn-primary" id="confirmReferBtn" disabled onclick="submitReferral()">Confirm
+                Referral</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const jobId = urlParams.get('jobId');
+
+        const coWorkers = [
+            { id: 1, name: 'Ramesh Kumar', skill: 'Plumber', rating: 4.8, available: true },
+            { id: 2, name: 'Amit Singh', skill: 'Plumber', rating: 4.5, available: true },
+            { id: 3, name: 'John Doe', skill: 'Helper', rating: 4.2, available: false },
+            { id: 4, name: 'Priya Sharma', skill: 'Electrician', rating: 4.9, available: true }
+        ];
+
+        const workerList = document.getElementById('workerList');
+        let selectedWorkerId = null;
+
+        function renderWorkers() {
+            workerList.innerHTML = coWorkers.map(w => `
+                <div class="worker-card-item ${!w.available ? 'disabled' : ''} ${selectedWorkerId === w.id ? 'selected' : ''}" 
+                     onclick="selectWorker(${w.id}, ${w.available})"
+                     style="${!w.available ? 'opacity:0.6; cursor:not-allowed' : ''}">
+                    <div class="worker-info">
+                        <div class="worker-avatar">👷</div>
+                        <div>
+                            <h3 style="margin:0">${w.name}</h3>
+                            <p style="margin:0; font-size:0.9rem; color:var(--text-tertiary)">${w.skill} • ⭐ ${w.rating}</p>
+                        </div>
+                    </div>
+                    <span class="badge ${w.available ? 'badge-success' : 'badge-warning'}">
+                        ${w.available ? 'Available' : 'Busy'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        window.selectWorker = function (id, available) {
+            if (!available) return;
+            selectedWorkerId = id;
+            document.getElementById('confirmReferBtn').disabled = false;
+            renderWorkers();
+        };
+
+        window.submitReferral = function () {
+            if (selectedWorkerId) {
+                const worker = coWorkers.find(w => w.id === selectedWorkerId);
+                alert(`Job ${jobId} successfully referred to ${worker.name}!`);
+                window.close();
+            }
+        };
+
+        renderWorkers();
+    </script>
+</body>
+
+</html>
