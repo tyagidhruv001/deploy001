@@ -10,3 +10,5 @@ end_of_file_check.txt
 frontend/config.js
 
 # Note: frontend and backend specific ignores are handled in their respective .gitignore files
+.vercel
+.env*.local
