@@ -1,12 +1,14 @@
-node_modules/
-# Global/Root specific
+
 .idea/
 .vscode/
-*.log
-end_of_file_check.txt
-**/.DS_Store
-**/Thumbs.db
 
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Firebase/Config
+=======
 /frontend/.env
 /backend/.env
 
@@ -14,9 +16,13 @@ frontend/node_modules
 backend/node_modules
 
 # Firebase config (contains API keys)
-frontend/config.js
 
-# Note: frontend and backend specific ignores are handled in their respective .gitignore files
-.vercel
-.env*.local
-js/config.js
+frontend/config.js
+config.js
+backend/serviceAccountKey.json
+serviceAccountKey.json
+
+# Vercel
+.vercel/
+
+
