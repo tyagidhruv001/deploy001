@@ -1530,38 +1530,40 @@ async function handleAIMessage() {
 
         // Handle Attachment (Text-only backend warning logic preserved but simplified)
         if (attachmentToSend) {
-            // Optional: Backend technically supports images if we updated API, but keeping simple for now
             appendChatMessage('ai', "I received your file. Analyzing...");
         }
         removeAttachment();
 
-        // Show typing indicator
-        const typingId = showTypingIndicator();
+        // Only call backend if there is text to process
+        if (query) {
+            // Show typing indicator
+            const typingId = showTypingIndicator();
 
-        try {
-            // Prepare payload for Backend API
-            const payload = {
-                message: query,
-                previousHistory: chatHistory,
-                workerContext: { type: 'platform_assistant' } // Special context for General Assistant
-            };
+            try {
+                // Prepare payload for Backend API
+                const payload = {
+                    message: query,
+                    previousHistory: chatHistory,
+                    workerContext: { type: 'platform_assistant' } // Special context for General Assistant
+                };
 
-            const response = await API.chat.send(payload);
-            removeTypingIndicator(typingId);
+                const response = await API.chat.send(payload);
+                removeTypingIndicator(typingId);
 
-            const replyText = response.reply;
-            appendChatMessage('ai', replyText);
+                const replyText = response.reply;
+                appendChatMessage('ai', replyText);
 
-            // Update History
-            chatHistory.push(
-                { role: "user", parts: [{ text: query }] },
-                { role: "model", parts: [{ text: replyText }] }
-            );
+                // Update History
+                chatHistory.push(
+                    { role: "user", parts: [{ text: query }] },
+                    { role: "model", parts: [{ text: replyText }] }
+                );
 
-        } catch (error) {
-            console.error('AI Chat Error:', error);
-            removeTypingIndicator(typingId);
-            appendChatMessage('ai', `⚠️ Error: ${error.message || 'Failed to connect to assistant'}.`);
+            } catch (error) {
+                console.error('AI Chat Error:', error);
+                removeTypingIndicator(typingId);
+                appendChatMessage('ai', `⚠️ Error: ${error.message || 'Failed to connect to assistant'}.`);
+            }
         }
     } catch (criticalError) {
         alert('Critical Chat Error: ' + criticalError.message);
