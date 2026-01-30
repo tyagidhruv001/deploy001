@@ -66,7 +66,7 @@ exports.getBookings = async (req, res) => {
     try {
         const { user_id, role } = req.query;
 
-        if (!user_id) return res.status(400).json({ error: 'user_id is required' });
+        if (!user_id && req.query.status !== 'pending') return res.status(400).json({ error: 'user_id is required' });
 
         let query = db.collection('jobs');
 

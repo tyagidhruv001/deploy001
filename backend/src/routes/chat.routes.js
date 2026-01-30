@@ -6,9 +6,9 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 let genAI;
 
-// @route   POST /api/chat
+// @route   POST /api/chat/send
 // @desc    Get a response from the AI worker
-router.post('/', async (req, res) => {
+router.post('/send', async (req, res) => {
     try {
         console.log('[CHAT] Request Body Received:', JSON.stringify(req.body));
         const { message, previousHistory, workerContext } = req.body;

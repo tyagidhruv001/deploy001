@@ -94,6 +94,25 @@ export const API = {
             return [];
         }
     },
+    transactions: {
+        create: async (transactionData) => {
+            return apiFetch('/transactions', {
+                method: 'POST',
+                body: JSON.stringify(transactionData)
+            });
+        },
+        getByUser: async (userId) => {
+            return apiFetch(`/transactions/${userId}`);
+        }
+    },
+    chat: {
+        async send(payload) {
+            return apiFetch('/chat/send', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+        }
+    },
     payments: {
         getBalance: async (userId) => {
             return apiFetch(`/payments/balance/${userId}`);
@@ -109,6 +128,14 @@ export const API = {
                 method: 'POST',
                 body: JSON.stringify(paymentData)
             });
+        }
+    },
+    notifications: {
+        getAll: async (userId) => {
+            return apiFetch(`/notifications/${userId}`);
+        },
+        markRead: async (notificationId) => {
+            return apiFetch(`/notifications/${notificationId}/read`, { method: 'PUT' });
         }
     },
     workers: {

@@ -176,7 +176,7 @@ window.changePassword = function () {
 // ============================================
 
 const userData = Storage.get('karyasetu_user');
-const userProfile = Storage.get('karyasetu_user_profile');
+let userProfile = Storage.get('karyasetu_user_profile');
 const userRole = Storage.get('karyasetu_user_role');
 const contentArea = document.getElementById('contentArea');
 
@@ -189,7 +189,20 @@ if (!userData || !userData.loggedIn) {
 // }
 
 if (!userProfile) {
-  window.location.href = '/pages/onboarding/worker-verification.html';
+  try {
+    console.log('Worker Profile not found in local storage. Fetching from server...');
+    const fetchedProfile = await API.auth.getProfile(userData.uid);
+    if (fetchedProfile && (fetchedProfile.role === 'worker' || fetchedProfile.skills)) {
+      userProfile = fetchedProfile;
+      Storage.set('karyasetu_user_profile', userProfile);
+      console.log('Worker Profile fetched and cached:', userProfile);
+    } else {
+      throw new Error('Profile incomplete or not a worker');
+    }
+  } catch (error) {
+    console.warn('Redirecting to verification: Profile fetch failed or invalid.', error);
+    window.location.href = '/pages/onboarding/worker-verification.html';
+  }
 }
 
 // State for Live Dashboard Data
@@ -365,11 +378,20 @@ async function refreshDashboardData() {
 
 
     // 1. Fetch Real Bookings from Firestore (Limited to 50)
+    // Robust API Resolution (Module vs Global)
+    const apiClient = API?.bookings ? API : window.API;
+
+    if (!apiClient || !apiClient.bookings || !apiClient.transactions || !apiClient.reviews) {
+      console.error('[DASHBOARD CRITICAL] API structure incomplete!', apiClient);
+      // Fallback or exit
+      return;
+    }
+
     const [myBookingsResult, availableBookingsResult, transactionsResult, reviewsResult] = await Promise.allSettled([
-      API.bookings.getByUser(user.uid, 'worker'),  // My assigned bookings
-      API.bookings.getAvailable(50),                // Available bookings (max 50)
-      API.transactions.getByUser(user.uid),
-      API.reviews.getByWorker(user.uid)
+      apiClient.bookings.getByUser(user.uid, 'worker'),  // My assigned bookings
+      apiClient.bookings.getAvailable(50),                // Available bookings (max 50)
+      apiClient.transactions.getByUser(user.uid),
+      apiClient.reviews.getByWorker(user.uid)
     ]);
 
     // Process Bookings
